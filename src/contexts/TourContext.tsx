@@ -37,7 +37,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'dashboard',
     route: '/dashboard',
-    badge: 'Paso 1 de 6 • Inicio',
+    badge: '1/6 • Inicio',
     title: '1. Tu Panel Principal (Dashboard)',
     subtitle: 'El pulso de sus metas y dinero en tiempo real',
     description:
@@ -51,7 +51,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'goals',
     route: '/goals',
-    badge: 'Paso 2 de 6 • Metas',
+    badge: '2/6 • Metas',
     title: '2. Metas de Ahorro & Compras Conjuntas',
     subtitle: 'Ahorren para sueños o coticen productos con 1 link',
     description:
@@ -65,7 +65,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'finances-budget',
     route: '/finances',
-    badge: 'Paso 3 de 6 • Finanzas',
+    badge: '3/6 • Finanzas',
     title: '3. Ingresos, Gastos y Vencimientos',
     subtitle: 'Control total de lo que entra y sale en el hogar',
     description:
@@ -79,7 +79,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'finances-debts',
     route: '/finances',
-    badge: 'Paso 4 de 6 • Pareja',
+    badge: '4/6 • Pareja',
     title: '4. Deudas Internas & División de Gastos',
     subtitle: 'Cuentas claras y cero discusiones por dinero',
     description:
@@ -93,7 +93,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'simulator',
     route: '/simulator',
-    badge: 'Paso 5 de 6 • Simulador',
+    badge: '5/6 • Simulador',
     title: '5. Simulador Financiero & Proyecciones',
     subtitle: 'Calculen cuándo cumplirán cada meta',
     description:
@@ -107,7 +107,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'settings',
     route: '/settings',
-    badge: 'Paso 6 de 6 • Pareja y Temas',
+    badge: '6/6 • Pareja y Temas',
     title: '6. Invitar a tu Pareja & Personalización',
     subtitle: 'Comparte tu código único y cambia el diseño',
     description:
@@ -311,7 +311,7 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
                       isLast ? '!bg-success hover:!bg-success/90 text-white font-bold' : ''
                     }`}
                   >
-                    {isLast ? '¡Comenzar a usar Tándem!' : 'Siguiente'}
+                    {isLast ? '¡Comenzar!' : 'Siguiente'}
                   </Button>
                 </div>
               </div>

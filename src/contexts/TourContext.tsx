@@ -16,6 +16,8 @@ import {
   X,
   Compass,
   ArrowRight,
+  MapPin,
+  Lightbulb,
 } from 'lucide-react'
 
 export interface TourStep {
@@ -25,6 +27,7 @@ export interface TourStep {
   title: string
   subtitle: string
   description: string
+  tipLabel: string
   instruction: string
   icon: React.ReactNode
   accentColor: string
@@ -35,78 +38,84 @@ export const TOUR_STEPS: TourStep[] = [
     id: 'dashboard',
     route: '/dashboard',
     badge: 'Paso 1 de 6 • Inicio',
-    title: '1. Tu Panel Principal (Dashboard) 📊',
+    title: '1. Tu Panel Principal (Dashboard)',
     subtitle: 'El pulso de sus metas y dinero en tiempo real',
     description:
       'Aquí ven el porcentaje global de ahorro, el dinero total acumulado, las metas activas y el flujo financiero mensual (ingresos vs gastos fijos).',
+    tipLabel: 'Consejo de Privacidad',
     instruction:
-      '💡 Tip: Puedes activar el Modo Privacidad (👁️ en la barra lateral o superior) para esconder los números cuando estés en lugares públicos.',
-    icon: <LayoutDashboard size={24} className="text-indigo-400" />,
+      'Puedes activar el Modo Privacidad (botón del ojo en la barra lateral o superior) para esconder los números cuando estés en lugares públicos.',
+    icon: <LayoutDashboard size={22} className="text-indigo-400" />,
     accentColor: '#6366f1',
   },
   {
     id: 'goals',
     route: '/goals',
     badge: 'Paso 2 de 6 • Metas',
-    title: '2. Metas de Ahorro & Compras Conjuntas 🎯',
+    title: '2. Metas de Ahorro & Compras Conjuntas',
     subtitle: 'Ahorren para sueños o coticen productos con 1 link',
     description:
       'Creen metas de ahorro (un viaje, un auto) o metas de compra. ¡Si van a comprar algo en Amazon o MercadoLibre, solo peguen el link del producto y Tándem extraerá la foto, título y precio automáticamente!',
+    tipLabel: 'Cómo usarlo',
     instruction:
-      '💡 Cómo usarlo: Pulsa en "+ Nueva Meta", elige si es de ahorro o cotización, y luego ambos pueden hacer abonos con confeti festivo y dejarse notas de ánimo.',
-    icon: <Target size={24} className="text-pink-400" />,
+      'Pulsa en "+ Nueva Meta", elige si es de ahorro o cotización, y luego ambos pueden hacer abonos con confeti festivo y dejarse notas de ánimo.',
+    icon: <Target size={22} className="text-pink-400" />,
     accentColor: '#ec4899',
   },
   {
     id: 'finances-budget',
     route: '/finances',
     badge: 'Paso 3 de 6 • Finanzas',
-    title: '3. Ingresos, Gastos y Vencimientos 💵',
+    title: '3. Ingresos, Gastos y Vencimientos',
     subtitle: 'Control total de lo que entra y sale en el hogar',
     description:
       'Registren los sueldos de ambos y los gastos fijos (arriendo, servicios, internet). El sistema calcula el balance disponible neto y el calendario les muestra qué facturas vencen en los próximos días.',
+    tipLabel: 'Cómo usarlo',
     instruction:
-      '💡 Cómo usarlo: En la pestaña "Resumen" pulsa "+ Ingreso" o "+ Gasto". En el Calendario de Vencimientos puedes pulsar "Notificar al móvil" para recibir una alerta push.',
-    icon: <Wallet size={24} className="text-emerald-400" />,
+      'En la pestaña "Resumen" pulsa "+ Ingreso" o "+ Gasto". En el Calendario de Vencimientos puedes pulsar "Notificar al móvil" para recibir una alerta push.',
+    icon: <Wallet size={22} className="text-emerald-400" />,
     accentColor: '#10b981',
   },
   {
     id: 'finances-debts',
     route: '/finances',
     badge: 'Paso 4 de 6 • Pareja',
-    title: '4. Deudas Internas & División de Gastos ⚖️',
+    title: '4. Deudas Internas & División de Gastos',
     subtitle: 'Cuentas claras y cero discusiones por dinero',
     description:
       '¿Ganan diferente o uno pagó la cuenta del restaurante? En la pestaña "División de Pareja" el sistema calcula los aportes justos (50/50 o proporcional al sueldo). Y en "Deudas de Pareja" anotan préstamos informales para saldarlos con 1 clic.',
+    tipLabel: 'Ejemplo de Pareja',
     instruction:
-      '💡 Ejemplo: "Ella pagó el supermercado ($120.000) ➔ Anotan la deuda y el sistema calcula la transferencia exacta para quedar a mano".',
-    icon: <Scale size={24} className="text-amber-400" />,
+      'Ella pagó el supermercado ($120.000) ➔ Anotan la deuda y el sistema calcula la transferencia exacta para quedar a mano.',
+    icon: <Scale size={22} className="text-amber-400" />,
     accentColor: '#f59e0b',
   },
   {
     id: 'simulator',
     route: '/simulator',
     badge: 'Paso 5 de 6 • Simulador',
-    title: '5. Simulador Financiero & Proyecciones 🔮',
+    title: '5. Simulador Financiero & Proyecciones',
     subtitle: 'Calculen cuándo cumplirán cada meta',
     description:
       'El simulador toma sus finanzas reales y calcula cuántas cuotas (mensuales o quincenales) necesitan para comprar lo que desean o alcanzar un fondo.',
+    tipLabel: 'Cómo usarlo',
     instruction:
-      '💡 Cómo usarlo: Selecciona una meta activa, ajusta cuánto quieren aportar al mes y mira la fecha estimada de cumplimiento.',
-    icon: <Sparkles size={24} className="text-cyan-400" />,
+      'Selecciona una meta activa, ajusta cuánto quieren aportar al mes y mira la fecha estimada de cumplimiento.',
+    icon: <Sparkles size={22} className="text-cyan-400" />,
     accentColor: '#06b6d4',
   },
   {
     id: 'settings',
     route: '/settings',
     badge: 'Paso 6 de 6 • Pareja y Temas',
-    title: '6. Invitar a tu Pareja & Personalización 👥',
+    title: '6. Invitar a tu Pareja & Personalización',
     subtitle: 'Comparte tu código único y cambia el diseño',
     description:
       'Aquí encuentras tu Código de Espacio para invitar a tu pareja (o unirte si ella ya lo creó). También puedes activar las Notificaciones Push y elegir entre 4 Temas visuales.',
+    tipLabel: 'Cómo invitar a tu pareja',
     instruction:
-      '💡 Cómo invitar: En la sección "Gestión de Pareja", copia el código de 6 caracteres y envíaselo por WhatsApp. Al registrarse, solo debe elegir "Unirme con código".',
-    icon: <Users2 size={24} className="text-purple-400" />,
+      'En la sección "Gestión de Pareja", copia el código de 6 caracteres y envíaselo por WhatsApp. Al registrarse, solo debe elegir "Unirme con código".',
+    icon: <Users2 size={22} className="text-purple-400" />,
     accentColor: '#a855f7',
   },
 ]
@@ -220,8 +229,9 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
                       <span className="text-[10px] uppercase font-bold tracking-wider text-text-muted bg-bg-surface px-2 py-0.5 rounded-full border border-border">
                         {currentStep.badge}
                       </span>
-                      <span className="text-[10px] text-accent-primary font-semibold">
-                        📍 Navegando a: {currentStep.route}
+                      <span className="text-[10px] text-accent-primary font-semibold flex items-center gap-1">
+                        <MapPin size={11} className="shrink-0" />
+                        <span>Navegando a: {currentStep.route}</span>
                       </span>
                     </div>
                     <h3 className="text-sm sm:text-base font-bold text-text-primary mt-0.5 leading-snug">
@@ -244,8 +254,14 @@ export function TourProvider({ children }: { children: React.ReactNode }) {
                 {currentStep.description}
               </p>
 
-              <div className="p-2.5 sm:p-3 rounded-[var(--radius-lg)] bg-bg-surface/90 border border-border/80 text-xs text-text-muted leading-normal">
-                {currentStep.instruction}
+              <div className="p-2.5 sm:p-3 rounded-[var(--radius-lg)] bg-bg-surface/90 border border-border/80 text-xs text-text-muted leading-normal space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-text-primary text-[11px]">
+                  <Lightbulb size={13} className="text-amber-400 shrink-0" />
+                  <span>{currentStep.tipLabel}</span>
+                </div>
+                <p className="text-text-secondary leading-relaxed pl-5">
+                  {currentStep.instruction}
+                </p>
               </div>
 
               {/* Navigation Controls */}

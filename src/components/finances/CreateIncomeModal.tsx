@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Store,
   Sparkles,
+  Gift,
 } from 'lucide-react'
 
 interface CreateIncomeModalProps {
@@ -22,13 +23,16 @@ interface CreateIncomeModalProps {
   onCreated: () => void
 }
 
-const categories = [
+export const incomeCategories = [
   { id: 'salary', label: 'Salario / Nómina', icon: <Briefcase size={16} className="text-emerald-400" /> },
   { id: 'freelance', label: 'Freelance / Honorarios', icon: <Laptop size={16} className="text-blue-400" /> },
   { id: 'investments', label: 'Inversiones / Rendimientos', icon: <TrendingUp size={16} className="text-purple-400" /> },
   { id: 'business', label: 'Negocio / Emprendimiento', icon: <Store size={16} className="text-amber-400" /> },
+  { id: 'bonus', label: 'Bonos y Aguinaldos', icon: <Gift size={16} className="text-pink-400" /> },
   { id: 'other', label: 'Otros Ingresos', icon: <Sparkles size={16} className="text-emerald-300" /> },
 ] as const
+
+const categories = incomeCategories
 
 const frequencies = [
   { id: 'monthly', label: 'Mensual' },

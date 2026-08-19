@@ -1,6 +1,9 @@
+'use client'
+
 import React from 'react'
 import Badge from '@/components/ui/Badge'
 import { formatCurrency } from '@/lib/utils/calculations'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { Database } from '@/types/supabase'
 import Link from 'next/link'
 import { PiggyBank, Search, Sparkles, Check } from 'lucide-react'
@@ -25,6 +28,7 @@ const priorityConfig = {
 }
 
 export default function GoalCard({ goal, totalContributions = 0 }: GoalCardProps) {
+  const { maskAmount } = usePrivacy()
   const type = typeConfig[goal.type]
   const priority = priorityConfig[goal.priority]
 
@@ -97,8 +101,8 @@ export default function GoalCard({ goal, totalContributions = 0 }: GoalCardProps
                 />
               </div>
               <div className="flex justify-between text-xs text-text-muted">
-                <span>${formatCurrency(totalContributions)}</span>
-                <span>${formatCurrency(goal.target_amount)}</span>
+                <span>{maskAmount(totalContributions)}</span>
+                <span>{maskAmount(goal.target_amount)}</span>
               </div>
             </>
           )}

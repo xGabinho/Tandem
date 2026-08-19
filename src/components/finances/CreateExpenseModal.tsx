@@ -20,6 +20,11 @@ import {
   Package,
   Sparkles,
   ShieldCheck,
+  Dog,
+  Film,
+  ShoppingBag,
+  Plane,
+  Wrench,
 } from 'lucide-react'
 
 interface CreateExpenseModalProps {
@@ -32,11 +37,16 @@ export const expenseCategories = [
   { id: 'housing', label: 'Vivienda / Renta', icon: <Home size={16} className="text-indigo-400" /> },
   { id: 'utilities', label: 'Servicios (Luz, Agua, Net)', icon: <Zap size={16} className="text-cyan-400" /> },
   { id: 'food', label: 'Alimentación / Super', icon: <ShoppingCart size={16} className="text-emerald-400" /> },
-  { id: 'transport', label: 'Transporte / Pasajes', icon: <Car size={16} className="text-amber-400" /> },
+  { id: 'transport', label: 'Transporte / Gasolina', icon: <Car size={16} className="text-amber-400" /> },
+  { id: 'pets', label: 'Mascotas y Veterinaria', icon: <Dog size={16} className="text-orange-400" /> },
+  { id: 'entertainment', label: 'Citas, Salidas y Ocio', icon: <Film size={16} className="text-purple-400" /> },
+  { id: 'shopping', label: 'Compras y Ropa', icon: <ShoppingBag size={16} className="text-fuchsia-400" /> },
+  { id: 'travel', label: 'Viajes y Vacaciones', icon: <Plane size={16} className="text-sky-400" /> },
   { id: 'subscriptions', label: 'Suscripciones / Streaming', icon: <Tv size={16} className="text-pink-400" /> },
-  { id: 'health', label: 'Salud y Seguros', icon: <HeartPulse size={16} className="text-rose-400" /> },
+  { id: 'health', label: 'Salud y Farmacia', icon: <HeartPulse size={16} className="text-rose-400" /> },
   { id: 'debt', label: 'Deudas y Tarjetas', icon: <CreditCard size={16} className="text-purple-400" /> },
   { id: 'education', label: 'Educación', icon: <GraduationCap size={16} className="text-blue-400" /> },
+  { id: 'maintenance', label: 'Mantenimiento y Hogar', icon: <Wrench size={16} className="text-teal-400" /> },
   { id: 'other', label: 'Otros Gastos', icon: <Package size={16} className="text-slate-400" /> },
 ] as const
 

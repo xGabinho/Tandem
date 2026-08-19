@@ -48,7 +48,7 @@ export default function EditExpenseModal({
     if (expense && isOpen) {
       setTitle(expense.title)
       setAmount(expense.amount.toString())
-      setCategory(expense.category)
+      setCategory((expense.category as typeof expenseCategories[number]['id']) || 'housing')
       setIsNeed(expense.is_fixed !== false) // default true unless explicitly false
       setFrequency(expense.frequency)
       setDueDay(expense.due_day ? expense.due_day.toString() : '')

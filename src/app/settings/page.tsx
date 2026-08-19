@@ -4,9 +4,23 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { supabase } from '@/lib/supabase/client'
+import { requestNotificationPermission, sendMobileNotification } from '@/lib/utils/notifications'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
+import {
+  Bell,
+  BellRing,
+  Smartphone,
+  Sparkles,
+  CheckCircle2,
+  AlertCircle,
+  Image as ImageIcon,
+  User,
+  Palette,
+  Users2,
+  AlertTriangle,
+} from 'lucide-react'
 
 export default function SettingsPage() {
   const { user, profile, refreshProfile, signOut } = useAuth()
@@ -16,6 +30,11 @@ export default function SettingsPage() {
   const [name, setName] = useState(profile?.name || '')
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileSaved, setProfileSaved] = useState(false)
+
+  // Notification state
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default')
+  const [testingNotif, setTestingNotif] = useState(false)
+  const [notifSent, setNotifSent] = useState(false)
 
   // Dissolution
   const [showDissolve, setShowDissolve] = useState(false)
@@ -28,6 +47,13 @@ export default function SettingsPage() {
   >([])
   const [joinCode, setJoinCode] = useState<string | null>(null)
   const [loadingWorkspace, setLoadingWorkspace] = useState(false)
+
+  // Check notification permission on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotifPermission(Notification.permission)
+    }
+  }, [])
 
   // Load workspace info
   useEffect(() => {
@@ -70,6 +96,30 @@ export default function SettingsPage() {
     setSavingProfile(false)
   }
 
+  const handleEnableNotifications = async () => {
+    const perm = await requestNotificationPermission()
+    setNotifPermission(perm)
+    if (perm === 'granted') {
+      sendMobileNotification('¡Notificaciones Activadas! 🔔', {
+        body: 'Recibirás avisos de abonos de tu pareja y recordatorios de gastos.',
+        data: { url: '/settings' },
+      })
+    }
+  }
+
+  const handleTestNotification = async () => {
+    setTestingNotif(true)
+    const success = await sendMobileNotification('🔔 Notificación de prueba en Tándem', {
+      body: '¡Excelente! Las notificaciones al celular están 100% activas y sincronizadas.',
+      data: { url: '/dashboard' },
+    })
+    if (success) {
+      setNotifSent(true)
+      setTimeout(() => setNotifSent(false), 3000)
+    }
+    setTestingNotif(false)
+  }
+
   // RF-006 / RN-006: Disolver vínculo
   const handleDissolve = async () => {
     if (!user || !profile?.workspace_id) return
@@ -97,24 +147,21 @@ export default function SettingsPage() {
   const partner = workspaceUsers.find((u) => u.id !== user?.id)
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-2xl">
+    <div className="space-y-6 animate-fade-in max-w-2xl pb-10">
       <header>
         <h2 className="text-2xl md:text-3xl font-bold text-text-primary tracking-tight">
           Ajustes
         </h2>
         <p className="text-text-muted text-sm mt-1">
-          Personaliza tu experiencia
+          Personaliza tu experiencia, notificaciones e identidad de la app
         </p>
       </header>
 
       {/* ===== Profile Section ===== */}
       <section className="glass-card p-6 space-y-4">
         <h3 className="font-bold text-text-primary flex items-center gap-2">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          Perfil
+          <User size={18} className="text-accent-primary" />
+          Perfil de Usuario
         </h3>
 
         <Input
@@ -134,16 +181,90 @@ export default function SettingsPage() {
         </Button>
       </section>
 
+      {/* ===== Mobile & Push Notifications Section ===== */}
+      <section className="glass-card p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-text-primary flex items-center gap-2">
+            <Smartphone size={18} className="text-pink-400" />
+            Notificaciones al Celular
+          </h3>
+          <span
+            className={`text-xs px-2.5 py-1 rounded-full font-bold border ${
+              notifPermission === 'granted'
+                ? 'bg-success-soft border-success/30 text-success'
+                : notifPermission === 'denied'
+                  ? 'bg-danger-soft border-danger/30 text-danger'
+                  : 'bg-warning-soft border-warning/30 text-warning'
+            }`}
+          >
+            {notifPermission === 'granted'
+              ? '✓ Activadas'
+              : notifPermission === 'denied'
+                ? 'Bloqueadas'
+                : 'Pendiente'}
+          </span>
+        </div>
+
+        <p className="text-xs text-text-muted leading-relaxed">
+          Recibe notificaciones en tu teléfono cuando tu pareja haga un abono a una meta, cuando se agregue un gasto o cuando un recibo esté próximo a vencer.
+        </p>
+
+        <div className="flex flex-wrap gap-2.5 pt-1">
+          {notifPermission !== 'granted' ? (
+            <Button
+              size="sm"
+              onClick={handleEnableNotifications}
+              icon={<BellRing size={14} />}
+            >
+              Activar Notificaciones en este Dispositivo
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={handleTestNotification}
+              loading={testingNotif}
+              icon={<Bell size={14} />}
+            >
+              {notifSent ? '✓ Notificación enviada' : 'Enviar notificación de prueba'}
+            </Button>
+          )}
+        </div>
+      </section>
+
+      {/* ===== Visual Identity & Logo Section ===== */}
+      <section className="glass-card p-6 space-y-4">
+        <h3 className="font-bold text-text-primary flex items-center gap-2">
+          <ImageIcon size={18} className="text-indigo-400" />
+          Logo e Icono de la App (Google Play Store & PWA)
+        </h3>
+
+        <div className="flex items-center gap-4 p-4 rounded-[var(--radius-lg)] bg-bg-surface border border-border">
+          <div className="w-16 h-16 rounded-[var(--radius-lg)] bg-bg-card border border-border flex items-center justify-center p-2 shrink-0 shadow-md">
+            <img
+              src="/icons/icon.svg"
+              alt="Logo Tándem"
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="space-y-1 text-xs">
+            <p className="font-bold text-text-primary text-sm">
+              Logo Oficial de Tándem
+            </p>
+            <p className="text-text-muted">
+              Ubicación de archivo: <code className="text-accent-primary font-mono">public/icons/icon.svg</code>
+            </p>
+            <p className="text-text-muted">
+              Para cambiar el logo con tu diseño propio, solo reemplaza este archivo o coloca tu imagen PNG en <code className="font-mono text-text-primary">public/icons/</code>.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ===== Theme Section (RF-003) ===== */}
       <section className="glass-card p-6 space-y-4">
         <h3 className="font-bold text-text-primary flex items-center gap-2">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="13.5" cy="6.5" r="0.5" fill="currentColor" />
-            <circle cx="17.5" cy="10.5" r="0.5" fill="currentColor" />
-            <circle cx="8.5" cy="7.5" r="0.5" fill="currentColor" />
-            <circle cx="6.5" cy="12.5" r="0.5" fill="currentColor" />
-            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
-          </svg>
+          <Palette size={18} className="text-amber-400" />
           Tema Visual
         </h3>
         <p className="text-xs text-text-muted">
@@ -189,12 +310,7 @@ export default function SettingsPage() {
       {/* ===== Workspace Section ===== */}
       <section className="glass-card p-6 space-y-4">
         <h3 className="font-bold text-text-primary flex items-center gap-2">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-          </svg>
+          <Users2 size={18} className="text-emerald-400" />
           Espacio Compartido
         </h3>
 
@@ -251,11 +367,7 @@ export default function SettingsPage() {
       {/* ===== Danger Zone ===== */}
       <section className="glass-card p-6 border-danger/20">
         <h3 className="font-bold text-danger flex items-center gap-2 mb-3">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
+          <AlertTriangle size={18} />
           Zona de Peligro
         </h3>
         <Button variant="danger" size="sm" onClick={signOut}>

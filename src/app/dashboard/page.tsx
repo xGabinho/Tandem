@@ -13,6 +13,8 @@ import {
 } from '@/lib/utils/calculations'
 import ProgressRing from '@/components/dashboard/ProgressRing'
 import QuickStats from '@/components/dashboard/QuickStats'
+import ActivityFeed, { ActivityItem } from '@/components/dashboard/ActivityFeed'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { DashboardStatSkeleton } from '@/components/ui/SkeletonLoader'
 import {
   PiggyBank,
@@ -27,10 +29,12 @@ type ContributionRow = Database['public']['Tables']['contributions']['Row']
 
 export default function DashboardPage() {
   const { profile } = useAuth()
+  const { maskAmount, isPrivate } = usePrivacy()
   const [goals, setGoals] = useState<GoalRow[]>([])
   const [contributions, setContributions] = useState<ContributionRow[]>([])
   const [incomes, setIncomes] = useState<IncomeRow[]>([])
   const [expenses, setExpenses] = useState<ExpenseRow[]>([])
+  const [activities, setActivities] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -38,15 +42,67 @@ export default function DashboardPage() {
       setLoading(true)
       const [goalsRes, contribRes, incomesData, expensesData] = await Promise.all([
         supabase.from('goals').select('*').order('created_at', { ascending: false }),
-        supabase.from('contributions').select('*'),
+        supabase
+          .from('contributions')
+          .select('*, users(name)')
+          .order('created_at', { ascending: false }),
         getIncomes().catch(() => [] as IncomeRow[]),
         getExpenses().catch(() => [] as ExpenseRow[]),
       ])
 
       if (goalsRes.data) setGoals(goalsRes.data)
-      if (contribRes.data) setContributions(contribRes.data)
+      if (contribRes.data) setContributions(contribRes.data as ContributionRow[])
       setIncomes(incomesData)
       setExpenses(expensesData)
+
+      // Build activity items list
+      const items: ActivityItem[] = []
+
+      if (contribRes.data) {
+        const goalsMap = new Map(goalsRes.data?.map((g) => [g.id, g.title]) || [])
+        for (const c of contribRes.data) {
+          items.push({
+            id: `c-${c.id}`,
+            type: 'contribution',
+            userName: (c as unknown as { users?: { name: string } })?.users?.name || 'Tu pareja',
+            title: `Abono`,
+            amount: c.amount,
+            goalId: c.goal_id,
+            goalTitle: goalsMap.get(c.goal_id) || 'Meta compartida',
+            createdAt: c.created_at || new Date().toISOString(),
+          })
+        }
+      }
+
+      if (goalsRes.data) {
+        for (const g of goalsRes.data) {
+          if (g.status === 'completed') {
+            items.push({
+              id: `g-comp-${g.id}`,
+              type: 'goal_completed',
+              userName: 'Ambos',
+              title: `Meta completada`,
+              goalId: g.id,
+              goalTitle: g.title,
+              createdAt: g.created_at || new Date().toISOString(),
+            })
+          } else {
+            items.push({
+              id: `g-creat-${g.id}`,
+              type: 'goal_created',
+              userName: 'Espacio Compartido',
+              title: `Nueva meta`,
+              goalId: g.id,
+              goalTitle: g.title,
+              createdAt: g.created_at || new Date().toISOString(),
+            })
+          }
+        }
+      }
+
+      items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      setActivities(items.slice(0, 6))
+
       setLoading(false)
     }
 
@@ -123,7 +179,7 @@ export default function DashboardPage() {
             <ProgressRing
               percentage={progress.percentage}
               label="Progreso Global"
-              sublabel={`$${formatCurrency(progress.totalSaved)} de $${formatCurrency(progress.totalTarget)}`}
+              sublabel={`${maskAmount(progress.totalSaved)} de ${maskAmount(progress.totalTarget)}`}
             />
             <div className="flex-1 w-full space-y-4">
               <div>
@@ -150,10 +206,10 @@ export default function DashboardPage() {
               </div>
               <div className="flex justify-between text-xs text-text-muted">
                 <span>
-                  ${formatCurrency(progress.totalSaved)} ahorrado
+                  {maskAmount(progress.totalSaved)} ahorrado
                 </span>
                 <span>
-                  ${formatCurrency(progress.totalTarget - progress.totalSaved)} restante
+                  {maskAmount(progress.totalTarget - progress.totalSaved)} restante
                 </span>
               </div>
             </div>
@@ -179,27 +235,29 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 pt-1">
-                <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface border border-border">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 md:gap-3 pt-1">
+                <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface border border-border flex flex-col justify-between overflow-hidden min-w-0">
                   <p className="text-[11px] text-text-muted uppercase font-semibold">Ingresos</p>
-                  <p className="text-base md:text-lg font-bold text-success mt-0.5">
-                    +${formatCurrency(finances.totalIncome)}
+                  <p className="text-sm sm:text-base md:text-lg font-bold text-success mt-0.5 truncate">
+                    {maskAmount(finances.totalIncome, '+$')}
                   </p>
                 </div>
-                <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface border border-border">
+                <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface border border-border flex flex-col justify-between overflow-hidden min-w-0">
                   <p className="text-[11px] text-text-muted uppercase font-semibold">Gastos</p>
-                  <p className="text-base md:text-lg font-bold text-danger mt-0.5">
-                    -${formatCurrency(finances.totalExpenses)}
+                  <p className="text-sm sm:text-base md:text-lg font-bold text-danger mt-0.5 truncate">
+                    {maskAmount(finances.totalExpenses, '-$')}
                   </p>
                 </div>
-                <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface border border-border">
+                <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface border border-border flex flex-col justify-between overflow-hidden min-w-0">
                   <p className="text-[11px] text-text-muted uppercase font-semibold">Disponible</p>
                   <p
-                    className={`text-base md:text-lg font-bold mt-0.5 ${
+                    className={`text-sm sm:text-base md:text-lg font-bold mt-0.5 truncate ${
                       finances.netBalance >= 0 ? 'text-accent-primary' : 'text-danger'
                     }`}
                   >
-                    {finances.netBalance < 0 ? '-' : ''}${formatCurrency(Math.abs(finances.netBalance))}
+                    {isPrivate
+                      ? '$ •••••'
+                      : `${finances.netBalance < 0 ? '-' : ''}$${formatCurrency(Math.abs(finances.netBalance))}`}
                   </p>
                 </div>
               </div>
@@ -224,102 +282,114 @@ export default function DashboardPage() {
           {/* Quick Stats Grid */}
           <QuickStats stats={stats} />
 
-          {/* Recent Goals */}
-          {recentGoals.length > 0 && (
-            <div>
-              <h3 className="text-lg font-bold text-text-primary mb-4">
-                Metas Recientes
-              </h3>
-              <div className="space-y-3">
-                {recentGoals.map((goal) => {
-                  const goalContribs = contributions.filter(
-                    (c) => c.goal_id === goal.id
-                  )
-                  const saved = goalContribs.reduce(
-                    (sum, c) => sum + c.amount,
-                    0
-                  )
-                  const pct =
-                    goal.target_amount && goal.target_amount > 0
-                      ? Math.min((saved / goal.target_amount) * 100, 100)
-                      : 0
+          {/* Grid: Recent Goals + Activity Feed */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            {/* Recent Goals */}
+            {recentGoals.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                    <span>🎯</span> Metas Recientes
+                  </h3>
+                  <Link
+                    href="/goals"
+                    className="text-xs font-semibold text-accent-primary hover:underline"
+                  >
+                    Ver todas →
+                  </Link>
+                </div>
+                <div className="space-y-3">
+                  {recentGoals.map((goal) => {
+                    const goalContribs = contributions.filter(
+                      (c) => c.goal_id === goal.id
+                    )
+                    const saved = goalContribs.reduce(
+                      (sum, c) => sum + c.amount,
+                      0
+                    )
+                    const pct =
+                      goal.target_amount && goal.target_amount > 0
+                        ? Math.min((saved / goal.target_amount) * 100, 100)
+                        : 0
 
-                  return (
-                    <div
-                      key={goal.id}
-                      className="glass-card p-4 flex items-center gap-4 cursor-pointer"
-                    >
-                      {/* Image or placeholder */}
-                      <div className="w-12 h-12 rounded-[var(--radius-md)] bg-accent-primary-soft flex items-center justify-center shrink-0 overflow-hidden">
-                        {goal.image_url ? (
-                          <img
-                            src={goal.image_url}
-                            alt={goal.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 13V2l8 4-8 4" />
-                            <path d="M20.55 10.23A9 9 0 1 1 8 4.94" />
-                          </svg>
-                        )}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-text-primary truncate">
-                          {goal.title}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <div className="flex-1 h-1.5 bg-bg-card-hover rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full"
-                              style={{
-                                width: `${pct}%`,
-                                background: 'var(--accent-gradient)',
-                              }}
-                            />
+                    return (
+                      <Link key={goal.id} href={`/goals/${goal.id}`} className="block">
+                        <div className="glass-card p-3.5 md:p-4 flex items-center gap-3.5 cursor-pointer hover:border-border-hover transition-all">
+                          {/* Image or placeholder */}
+                          <div className="w-12 h-12 rounded-[var(--radius-md)] bg-accent-primary-soft flex items-center justify-center shrink-0 overflow-hidden">
+                            {goal.image_url ? (
+                              <img
+                                src={goal.image_url}
+                                alt={goal.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 13V2l8 4-8 4" />
+                                <path d="M20.55 10.23A9 9 0 1 1 8 4.94" />
+                              </svg>
+                            )}
                           </div>
-                          <span className="text-xs text-text-muted font-medium shrink-0">
-                            {Math.round(pct)}%
-                          </span>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-text-primary truncate">
+                              {goal.title}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <div className="flex-1 h-1.5 bg-bg-card-hover rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{
+                                    width: `${pct}%`,
+                                    background: 'var(--accent-gradient)',
+                                  }}
+                                />
+                              </div>
+                              <span className="text-xs text-text-muted font-medium shrink-0">
+                                {Math.round(pct)}%
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Amount */}
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-bold text-text-primary">
+                              {maskAmount(saved)}
+                            </p>
+                            <p className="text-xs text-text-muted">
+                              de {maskAmount(goal.target_amount || 0)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-
-                      {/* Amount */}
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-text-primary">
-                          ${formatCurrency(saved)}
-                        </p>
-                        <p className="text-xs text-text-muted">
-                          de ${formatCurrency(goal.target_amount || 0)}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })}
+                      </Link>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Empty state */}
-          {goals.length === 0 && !loading && (
-            <div className="glass-card p-12 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent-primary-soft mb-4">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 13V2l8 4-8 4" />
-                  <path d="M20.55 10.23A9 9 0 1 1 8 4.94" />
-                  <path d="M8 10a5 5 0 1 0 8.9 2.02" />
-                </svg>
+            ) : (
+              <div className="glass-card p-8 text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent-primary-soft mb-3">
+                  <Target size={22} className="text-accent-primary" />
+                </div>
+                <h4 className="text-sm font-bold text-text-primary mb-1">
+                  ¡Empiecen su primera meta!
+                </h4>
+                <p className="text-xs text-text-muted max-w-xs mx-auto mb-3">
+                  Crea una meta de ahorro o cotización para planear juntos.
+                </p>
+                <Link
+                  href="/goals"
+                  className="inline-flex text-xs font-bold text-accent-primary hover:underline"
+                >
+                  + Crear meta ahora
+                </Link>
               </div>
-              <h3 className="text-lg font-bold text-text-primary mb-2">
-                ¡Empieza tu primera meta!
-              </h3>
-              <p className="text-sm text-text-muted max-w-sm mx-auto">
-                Crea una meta de ahorro, cotización o experiencia para comenzar a planear juntos.
-              </p>
-            </div>
-          )}
+            )}
+
+            {/* Couple Activity Feed */}
+            <ActivityFeed activities={activities} loading={loading} />
+          </div>
         </div>
       )}
     </>

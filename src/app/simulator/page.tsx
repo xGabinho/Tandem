@@ -15,6 +15,7 @@ import {
 import { Database, IncomeRow, ExpenseRow } from '@/types/supabase'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import {
   PiggyBank,
   Calculator,
@@ -26,6 +27,7 @@ type ContributionRow = Database['public']['Tables']['contributions']['Row']
 
 export default function SimulatorPage() {
   const { profile } = useAuth()
+  const { maskAmount } = usePrivacy()
 
   // Savings Calculator state (RF-015)
   const [income, setIncome] = useState('')
@@ -114,17 +116,17 @@ export default function SimulatorPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* ===== SAVINGS CALCULATOR (RF-015) ===== */}
-        <div className="glass-card p-6 space-y-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-[var(--radius-md)] bg-success-soft flex items-center justify-center text-success">
+        <div className="glass-card p-5 sm:p-6 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+            <div className="flex items-center sm:items-start gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-[var(--radius-md)] bg-success-soft flex items-center justify-center text-success shrink-0">
                 <PiggyBank size={20} />
               </div>
-              <div>
-                <h3 className="font-bold text-text-primary">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-text-primary text-base">
                   Capacidad de Ahorro
                 </h3>
-                <p className="text-xs text-text-muted">
+                <p className="text-xs text-text-muted leading-relaxed mt-0.5">
                   Resta automática de tus gastos fijos sobre tus ingresos
                 </p>
               </div>
@@ -132,10 +134,10 @@ export default function SimulatorPage() {
             {hasLoadedSavedData && (
               <button
                 onClick={handleResetToSaved}
-                className="text-[11px] font-semibold text-accent-primary hover:underline"
+                className="text-xs font-semibold text-accent-primary hover:underline self-start sm:self-auto shrink-0 bg-accent-primary-soft/50 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-md border sm:border-0 border-accent-primary/20 transition-all"
                 title="Restaurar a los montos guardados en Finanzas"
               >
-                Cargar guardados
+                ↺ Cargar guardados
               </button>
             )}
           </div>
@@ -180,8 +182,8 @@ export default function SimulatorPage() {
                 <p className="text-xs text-text-muted mb-1">
                   Capacidad de ahorro mensual (Ingresos − Gastos)
                 </p>
-                <p className="text-2xl font-bold text-success">
-                  ${formatCurrency(capacity.capacity)}
+                <p className="text-2xl font-bold text-success truncate">
+                  {maskAmount(capacity.capacity)}
                 </p>
               </div>
 
@@ -218,16 +220,16 @@ export default function SimulatorPage() {
         </div>
 
         {/* ===== INSTALLMENT PROJECTION (RF-016) ===== */}
-        <div className="glass-card p-6 space-y-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-accent-primary-soft flex items-center justify-center text-accent-primary">
+        <div className="glass-card p-5 sm:p-6 space-y-5">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-accent-primary-soft flex items-center justify-center text-accent-primary shrink-0">
               <Calculator size={20} />
             </div>
-            <div>
-              <h3 className="font-bold text-text-primary">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-bold text-text-primary text-base">
                 Proyección de Cuotas
               </h3>
-              <p className="text-xs text-text-muted">
+              <p className="text-xs text-text-muted leading-relaxed mt-0.5">
                 Cuánto abonar por periodo para cumplir tu meta
               </p>
             </div>
@@ -284,21 +286,21 @@ export default function SimulatorPage() {
                     <p className="text-xs text-text-muted mb-1">
                       Cuota {projection.frequencyLabel} sugerida
                     </p>
-                    <p className="text-3xl font-bold text-accent-primary">
-                      ${formatCurrency(projection.installmentAmount)}
+                    <p className="text-2xl sm:text-3xl font-bold text-accent-primary truncate">
+                      {maskAmount(projection.installmentAmount)}
                     </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface">
+                    <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface overflow-hidden">
                       <p className="text-xs text-text-muted">Faltante</p>
-                      <p className="text-sm font-bold text-text-primary">
-                        ${formatCurrency(projection.remainingAmount)}
+                      <p className="text-sm sm:text-base font-bold text-text-primary truncate">
+                        {maskAmount(projection.remainingAmount)}
                       </p>
                     </div>
-                    <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface">
+                    <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface overflow-hidden">
                       <p className="text-xs text-text-muted">Períodos</p>
-                      <p className="text-sm font-bold text-text-primary">
+                      <p className="text-sm sm:text-base font-bold text-text-primary truncate">
                         {projection.periodsRemaining} {frequency === 'monthly' ? 'meses' : 'quincenas'}
                       </p>
                     </div>

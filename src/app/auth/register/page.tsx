@@ -38,6 +38,17 @@ export default function RegisterPage() {
       return
     }
 
+    const isSupabaseConfigured =
+      Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+      !process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder')
+
+    if (!isSupabaseConfigured) {
+      setError(
+        'Falta configurar las credenciales de Supabase. Crea el archivo .env.local en la raíz con NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY.'
+      )
+      return
+    }
+
     setLoading(true)
 
     const { error: signUpError } = await signUp(email, password, name.trim())

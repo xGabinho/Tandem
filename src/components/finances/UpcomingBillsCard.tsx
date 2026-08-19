@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react'
 import { ExpenseRow } from '@/types/supabase'
 import { formatCurrency } from '@/lib/utils/calculations'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { getExpenseIcon } from '@/app/finances/page'
 import { Calendar, AlertCircle, Clock, CheckCircle2 } from 'lucide-react'
 
@@ -15,6 +16,7 @@ export default function UpcomingBillsCard({
   expenses,
   onEditExpense,
 }: UpcomingBillsCardProps) {
+  const { maskAmount } = usePrivacy()
   const currentDay = new Date().getDate()
   const currentMonthName = new Date().toLocaleDateString('es-ES', { month: 'long' })
 
@@ -87,7 +89,7 @@ export default function UpcomingBillsCard({
         {totalNext7Days > 0 && (
           <div className="self-start sm:self-auto px-3 py-1.5 rounded-[var(--radius-md)] bg-warning-soft border border-warning/30 text-xs text-warning font-semibold flex items-center gap-1.5">
             <Clock size={14} />
-            <span>Próximos 7 días: ${formatCurrency(totalNext7Days)}</span>
+            <span>Próximos 7 días: {maskAmount(totalNext7Days)}</span>
           </div>
         )}
       </div>
@@ -146,7 +148,7 @@ export default function UpcomingBillsCard({
 
               <div className="text-right shrink-0 pl-2">
                 <p className="text-sm font-bold text-danger">
-                  ${formatCurrency(bill.amount)}
+                  {maskAmount(bill.amount, '-$')}
                 </p>
                 {bill.users?.name && (
                   <p className="text-[10px] text-text-muted truncate max-w-[80px]">

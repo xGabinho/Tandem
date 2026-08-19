@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { IncomeRow, ExpenseRow, UserRow } from '@/types/supabase'
 import { formatCurrency, normalizeToMonthly } from '@/lib/utils/calculations'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { Users2, Scale, ArrowRightLeft, Sparkles, CheckCircle2, ShieldCheck } from 'lucide-react'
 
 interface CoupleSplitCardProps {
@@ -22,6 +23,7 @@ export default function CoupleSplitCard({
   totalExpenses,
   totalIncome,
 }: CoupleSplitCardProps) {
+  const { maskAmount, isPrivate } = usePrivacy()
   const [splitMode, setSplitMode] = useState<SplitMode>('proportional')
 
   const splitData = useMemo(() => {
@@ -90,7 +92,7 @@ export default function CoupleSplitCard({
       if (diff > 0.01) {
         const payer = u1.balance < 0 ? u1 : u2
         const receiver = u1.balance < 0 ? u2 : u1
-        settlementMessage = `${payer.user.name} le transfiere $${formatCurrency(diff)} a ${receiver.user.name} para equilibrar los gastos del mes.`
+        settlementMessage = `${payer.user.name} le transfiere ${isPrivate ? '$ •••••' : '$' + formatCurrency(diff)} a ${receiver.user.name} para equilibrar los gastos del mes.`
       } else {
         settlementMessage = '¡Los aportes a los gastos están perfectamente equilibrados!'
       }
@@ -100,7 +102,7 @@ export default function CoupleSplitCard({
       members,
       settlementMessage,
     }
-  }, [workspaceUsers, incomes, expenses, totalExpenses, totalIncome, splitMode])
+  }, [workspaceUsers, incomes, expenses, totalExpenses, totalIncome, splitMode, isPrivate])
 
   if (!splitData || workspaceUsers.length < 2) {
     return (
@@ -159,8 +161,7 @@ export default function CoupleSplitCard({
 
       {/* Members Comparison Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {splitData.members.map((member, index) => {
-          const isPrimary = index === 0
+        {splitData.members.map((member) => {
           return (
             <div
               key={member.user.id}
@@ -177,7 +178,7 @@ export default function CoupleSplitCard({
                       {member.user.name}
                     </p>
                     <p className="text-[11px] text-text-muted">
-                      Ingreso: ${formatCurrency(member.income)} ({member.incomePercentage.toFixed(0)}% del total)
+                      Ingreso: {maskAmount(member.income)} ({member.incomePercentage.toFixed(0)}% del total)
                     </p>
                   </div>
                 </div>
@@ -191,13 +192,13 @@ export default function CoupleSplitCard({
                 <div className="p-2.5 rounded-[var(--radius-md)] bg-bg-card border border-border">
                   <span className="text-text-muted block text-[11px]">Cuota justa a cubrir</span>
                   <span className="font-bold text-text-primary text-sm">
-                    ${formatCurrency(member.fairShare)}
+                    {maskAmount(member.fairShare)}
                   </span>
                 </div>
                 <div className="p-2.5 rounded-[var(--radius-md)] bg-bg-card border border-border">
                   <span className="text-text-muted block text-[11px]">Gasto que ya paga</span>
                   <span className="font-bold text-text-primary text-sm">
-                    ${formatCurrency(member.coveredExpenses)}
+                    {maskAmount(member.coveredExpenses)}
                   </span>
                 </div>
               </div>
@@ -211,11 +212,11 @@ export default function CoupleSplitCard({
                   </span>
                 ) : member.balance > 0 ? (
                   <span className="text-success font-semibold">
-                    A favor +${formatCurrency(member.balance)}
+                    A favor {maskAmount(member.balance, '+$')}
                   </span>
                 ) : (
                   <span className="text-danger font-semibold">
-                    Aporte pendiente -${formatCurrency(Math.abs(member.balance))}
+                    Aporte pendiente {maskAmount(Math.abs(member.balance), '-$')}
                   </span>
                 )}
               </div>
@@ -237,3 +238,4 @@ export default function CoupleSplitCard({
     </div>
   )
 }
+

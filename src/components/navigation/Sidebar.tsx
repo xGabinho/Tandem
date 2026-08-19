@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import {
   LayoutDashboard,
   Target,
@@ -11,6 +12,8 @@ import {
   Settings,
   LogOut,
   Users2,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 
 const navItems = [
@@ -44,20 +47,34 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname()
   const { profile, signOut } = useAuth()
+  const { isPrivate, togglePrivacy } = usePrivacy()
 
   return (
     <aside className="w-72 bg-bg-card m-4 rounded-[var(--radius-xl)] shadow-sm flex flex-col p-6 border border-border">
-      {/* Logo */}
-      <div className="flex items-center gap-3 mb-10">
-        <div
-          className="w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center text-white"
-          style={{ background: 'var(--accent-gradient)' }}
-        >
-          <Users2 size={22} strokeWidth={2.5} />
+      {/* Logo & Privacy Mode */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <img
+            src="/icons/icon.svg"
+            alt="Tándem"
+            className="w-10 h-10 rounded-[var(--radius-md)] object-contain shadow-md"
+          />
+          <h1 className="text-xl font-bold text-text-primary tracking-tight">
+            Tándem
+          </h1>
         </div>
-        <h1 className="text-xl font-bold text-text-primary tracking-tight">
-          Tándem
-        </h1>
+
+        <button
+          onClick={togglePrivacy}
+          className={`p-2 rounded-[var(--radius-md)] border transition-all ${
+            isPrivate
+              ? 'bg-warning-soft text-warning border-warning/30'
+              : 'text-text-muted hover:text-text-primary border-border hover:bg-bg-surface'
+          }`}
+          title={isPrivate ? 'Mostrar cifras' : 'Ocultar cifras (Modo Privacidad)'}
+        >
+          {isPrivate ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
       </div>
 
       {/* Navigation */}

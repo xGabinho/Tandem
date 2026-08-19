@@ -7,6 +7,7 @@ import {
   validateContributionAmount,
   formatCurrency,
 } from '@/lib/utils/calculations'
+import { triggerCelebrationConfetti, triggerSubtleConfetti } from '@/lib/utils/confetti'
 import { Database } from '@/types/supabase'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
@@ -77,6 +78,12 @@ export default function AddContributionModal({
     } else {
       setAmount('')
       setNote('')
+      const isCompleted = goal.target_amount && (currentTotal + numAmount >= goal.target_amount)
+      if (isCompleted) {
+        triggerCelebrationConfetti()
+      } else {
+        triggerSubtleConfetti()
+      }
       onAdded()
       onClose()
     }

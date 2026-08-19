@@ -16,6 +16,11 @@ import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import AddContributionModal from '@/components/contributions/AddContributionModal'
 import ConvertGoalDialog from '@/components/goals/ConvertGoalDialog'
+import EditGoalModal from '@/components/goals/EditGoalModal'
+import AffiliateLinksList from '@/components/goals/AffiliateLinksList'
+import AffiliatePurchaseCelebration from '@/components/goals/AffiliatePurchaseCelebration'
+import { triggerCelebrationConfetti } from '@/lib/utils/confetti'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
 import {
   PiggyBank,
@@ -30,6 +35,7 @@ import {
   ExternalLink,
   Zap,
   TrendingUp,
+  Pencil,
 } from 'lucide-react'
 
 type GoalRow = Database['public']['Tables']['goals']['Row']
@@ -52,9 +58,11 @@ export default function GoalDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const { id } = use(params)
-  const router = useRouter()
+  const resolvedParams = use(params)
+  const { id } = resolvedParams
   const { user } = useAuth()
+  const { maskAmount } = usePrivacy()
+  const router = useRouter()
   const [goal, setGoal] = useState<GoalRow | null>(null)
   const [contributions, setContributions] = useState<ContributionRow[]>([])
   const [incomes, setIncomes] = useState<IncomeRow[]>([])
@@ -62,6 +70,7 @@ export default function GoalDetailPage({
   const [loading, setLoading] = useState(true)
   const [showAddContribution, setShowAddContribution] = useState(false)
   const [showConvertDialog, setShowConvertDialog] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [togglingStatus, setTogglingStatus] = useState(false)
 
@@ -158,6 +167,9 @@ export default function GoalDetailPage({
       .eq('id', goal.id)
 
     if (!error) {
+      if (newStatus === 'completed') {
+        triggerCelebrationConfetti()
+      }
       fetchData()
     }
     setTogglingStatus(false)
@@ -170,6 +182,27 @@ export default function GoalDetailPage({
     const { error } = await supabase.from('goals').delete().eq('id', goal.id)
     if (!error) {
       router.push('/goals')
+    }
+  }
+
+  // Añadir nuevo enlace de tienda o cotización
+  const handleAddReferenceLink = async (newLink: string) => {
+    if (!goal) return
+    const current = (Array.isArray(goal.reference_links)
+      ? goal.reference_links
+      : typeof goal.reference_links === 'string'
+        ? (goal.reference_links as string).split('\n').filter(Boolean)
+        : []) as string[]
+    const updated = [...current, newLink]
+    const { error } = await supabase
+      .from('goals')
+      .update({
+        reference_links: updated as unknown as Database['public']['Tables']['goals']['Update']['reference_links'],
+      })
+      .eq('id', goal.id)
+
+    if (!error) {
+      fetchData()
     }
   }
 
@@ -268,6 +301,15 @@ export default function GoalDetailPage({
 
           <Button
             size="sm"
+            variant="outline"
+            onClick={() => setShowEditModal(true)}
+            icon={<Pencil size={14} />}
+          >
+            Editar
+          </Button>
+
+          <Button
+            size="sm"
             variant={goal.status === 'completed' ? 'secondary' : 'outline'}
             onClick={handleToggleStatus}
             loading={togglingStatus}
@@ -301,10 +343,10 @@ export default function GoalDetailPage({
             <div className="text-right">
               <p className="text-sm text-text-muted">Ahorrado</p>
               <p className="text-lg font-bold text-accent-primary">
-                ${formatCurrency(progress.saved)}
+                {maskAmount(progress.saved)}
               </p>
               <p className="text-xs text-text-muted">
-                de ${formatCurrency(goal.target_amount)}
+                de {maskAmount(goal.target_amount)}
               </p>
             </div>
           </div>
@@ -324,7 +366,7 @@ export default function GoalDetailPage({
               <div className="p-3.5 rounded-[var(--radius-md)] bg-bg-surface border border-border">
                 <p className="text-text-muted text-xs">Cuota {installment.frequencyLabel}</p>
                 <p className="font-bold text-text-primary text-base">
-                  ${formatCurrency(installment.installmentAmount)}
+                  {maskAmount(installment.installmentAmount)}
                 </p>
               </div>
               <div className="p-3.5 rounded-[var(--radius-md)] bg-bg-surface border border-border">
@@ -336,7 +378,7 @@ export default function GoalDetailPage({
               <div className="p-3.5 rounded-[var(--radius-md)] bg-bg-surface border border-border">
                 <p className="text-text-muted text-xs">Faltante</p>
                 <p className="font-bold text-danger text-base">
-                  ${formatCurrency(installment.remainingAmount)}
+                  {maskAmount(installment.remainingAmount)}
                 </p>
               </div>
             </div>
@@ -347,23 +389,23 @@ export default function GoalDetailPage({
             <div className="p-4 rounded-[var(--radius-lg)] bg-accent-primary-soft/40 border border-accent-primary/20 space-y-3">
               <div className="flex items-center gap-2 text-xs font-bold text-accent-primary uppercase tracking-wider">
                 <Zap size={15} />
-                <span>Proyección Inteligente según su Flujo Real (${formatCurrency(finances.netBalance)}/mes disponible)</span>
+                <span>Proyección Inteligente según su Flujo Real ({maskAmount(finances.netBalance)}/mes disponible)</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
                 <div className="p-2.5 rounded-[var(--radius-md)] bg-bg-card border border-border">
-                  <span className="text-text-muted block">Destinando el 100% (${formatCurrency(smartProjections.full.amount)})</span>
+                  <span className="text-text-muted block">Destinando el 100% ({maskAmount(smartProjections.full.amount)})</span>
                   <span className="font-bold text-success text-sm block mt-0.5">
                     {smartProjections.full.months} {smartProjections.full.months === 1 ? 'mes' : 'meses'} ({smartProjections.full.formattedDate})
                   </span>
                 </div>
                 <div className="p-2.5 rounded-[var(--radius-md)] bg-bg-card border border-border">
-                  <span className="text-text-muted block">Destinando el 50% (${formatCurrency(smartProjections.half.amount)})</span>
+                  <span className="text-text-muted block">Destinando el 50% ({maskAmount(smartProjections.half.amount)})</span>
                   <span className="font-bold text-text-primary text-sm block mt-0.5">
                     {smartProjections.half.months} meses ({smartProjections.half.formattedDate})
                   </span>
                 </div>
                 <div className="p-2.5 rounded-[var(--radius-md)] bg-bg-card border border-border">
-                  <span className="text-text-muted block">Destinando el 25% (${formatCurrency(smartProjections.quarter.amount)})</span>
+                  <span className="text-text-muted block">Destinando el 25% ({maskAmount(smartProjections.quarter.amount)})</span>
                   <span className="font-bold text-text-primary text-sm block mt-0.5">
                     {smartProjections.quarter.months} meses ({smartProjections.quarter.formattedDate})
                   </span>
@@ -382,35 +424,21 @@ export default function GoalDetailPage({
         </div>
       )}
 
-      {/* Reference Links (quoting only) */}
-      {goal.type === 'quoting' && goal.reference_links && (
-        <div className="glass-card p-6">
-          <h3 className="font-bold text-text-primary mb-3 flex items-center gap-2">
-            <ExternalLink size={18} className="text-accent-primary" />
-            Enlaces de referencia
-          </h3>
-          <div className="space-y-2">
-            {(Array.isArray(goal.reference_links)
-              ? (goal.reference_links as string[])
-              : typeof goal.reference_links === 'string'
-                ? (goal.reference_links as string).split('\n')
-                : []
-            )
-              .filter(Boolean)
-              .map((link: string, i: number) => (
-                <a
-                  key={i}
-                  href={link.startsWith('http') ? link : `https://${link}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-3 rounded-[var(--radius-md)] bg-bg-surface hover:bg-bg-card-hover text-sm text-accent-primary truncate transition-colors border border-border"
-                >
-                  {link}
-                </a>
-              ))}
-          </div>
-        </div>
+      {/* Celebration for Completed Goal */}
+      {(goal.status === 'completed' || (progress && progress.percentage >= 100)) && goal.reference_links && (
+        <AffiliatePurchaseCelebration
+          goalTitle={goal.title}
+          referenceLinks={goal.reference_links}
+        />
       )}
+
+      {/* Reference & Store Affiliate Links */}
+      <AffiliateLinksList
+        links={goal.reference_links}
+        goalTitle={goal.title}
+        isCompleted={goal.status === 'completed' || (progress ? progress.percentage >= 100 : false)}
+        onAddLink={handleAddReferenceLink}
+      />
 
       {/* Contributions History (savings only) */}
       {goal.type === 'savings' && (
@@ -429,10 +457,10 @@ export default function GoalDetailPage({
                     className="py-3 flex justify-between items-center"
                   >
                     <div>
-                      <p className="font-semibold text-text-primary">
-                        +${formatCurrency(c.amount)}
+                      <p className="font-bold text-text-primary text-base">
+                        {maskAmount(c.amount, '+$')}
                       </p>
-                      <p className="text-xs text-text-muted">
+                      <p className="text-xs text-text-muted mt-0.5">
                         {(c as unknown as { users?: { name: string } }).users?.name || 'Usuario'} •{' '}
                         {c.created_at
                           ? new Date(c.created_at).toLocaleDateString('es-ES', {
@@ -442,6 +470,12 @@ export default function GoalDetailPage({
                             })
                           : ''}
                       </p>
+                      {c.note && (
+                        <div className="mt-1.5 p-2 rounded-[var(--radius-md)] bg-bg-surface border border-border/80 text-xs text-text-secondary italic flex items-start gap-1.5 max-w-md">
+                          <span className="text-accent-primary shrink-0 not-italic">💬</span>
+                          <span>&ldquo;{c.note}&rdquo;</span>
+                        </div>
+                      )}
                     </div>
                     {canDelete && (
                       <button
@@ -478,6 +512,13 @@ export default function GoalDetailPage({
         isOpen={showConvertDialog}
         onClose={() => setShowConvertDialog(false)}
         onConverted={fetchData}
+      />
+
+      <EditGoalModal
+        goal={goal}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onUpdated={fetchData}
       />
     </div>
   )

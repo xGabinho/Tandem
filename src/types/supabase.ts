@@ -174,7 +174,7 @@ export type Database = {
           user_id: string | null
           title: string
           amount: number
-          category: 'salary' | 'freelance' | 'investments' | 'business' | 'other'
+          category: 'salary' | 'freelance' | 'investments' | 'business' | 'bonus' | 'other' | (string & {})
           frequency: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
           created_at: string | null
         }
@@ -184,7 +184,7 @@ export type Database = {
           user_id?: string | null
           title: string
           amount: number
-          category?: 'salary' | 'freelance' | 'investments' | 'business' | 'other'
+          category?: 'salary' | 'freelance' | 'investments' | 'business' | 'bonus' | 'other' | (string & {})
           frequency?: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
           created_at?: string | null
         }
@@ -194,7 +194,7 @@ export type Database = {
           user_id?: string | null
           title?: string
           amount?: number
-          category?: 'salary' | 'freelance' | 'investments' | 'business' | 'other'
+          category?: 'salary' | 'freelance' | 'investments' | 'business' | 'bonus' | 'other' | (string & {})
           frequency?: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
           created_at?: string | null
         }
@@ -222,7 +222,7 @@ export type Database = {
           user_id: string | null
           title: string
           amount: number
-          category: 'housing' | 'utilities' | 'food' | 'transport' | 'subscriptions' | 'health' | 'debt' | 'education' | 'other'
+          category: 'housing' | 'utilities' | 'food' | 'transport' | 'pets' | 'entertainment' | 'shopping' | 'travel' | 'subscriptions' | 'health' | 'debt' | 'education' | 'maintenance' | 'other' | (string & {})
           due_day: number | null
           frequency: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
           is_fixed: boolean | null
@@ -234,7 +234,7 @@ export type Database = {
           user_id?: string | null
           title: string
           amount: number
-          category?: 'housing' | 'utilities' | 'food' | 'transport' | 'subscriptions' | 'health' | 'debt' | 'education' | 'other'
+          category?: 'housing' | 'utilities' | 'food' | 'transport' | 'pets' | 'entertainment' | 'shopping' | 'travel' | 'subscriptions' | 'health' | 'debt' | 'education' | 'maintenance' | 'other' | (string & {})
           due_day?: number | null
           frequency?: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
           is_fixed?: boolean | null
@@ -246,7 +246,7 @@ export type Database = {
           user_id?: string | null
           title?: string
           amount?: number
-          category?: 'housing' | 'utilities' | 'food' | 'transport' | 'subscriptions' | 'health' | 'debt' | 'education' | 'other'
+          category?: 'housing' | 'utilities' | 'food' | 'transport' | 'pets' | 'entertainment' | 'shopping' | 'travel' | 'subscriptions' | 'health' | 'debt' | 'education' | 'maintenance' | 'other' | (string & {})
           due_day?: number | null
           frequency?: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
           is_fixed?: boolean | null
@@ -263,6 +263,64 @@ export type Database = {
           {
             foreignKeyName: 'expenses_user_id_fkey'
             columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      internal_debts: {
+        Row: {
+          id: string
+          workspace_id: string
+          debtor_id: string
+          creditor_id: string
+          amount: number
+          description: string
+          status: 'pending' | 'settled'
+          settled_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          debtor_id: string
+          creditor_id: string
+          amount: number
+          description: string
+          status?: 'pending' | 'settled'
+          settled_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          debtor_id?: string
+          creditor_id?: string
+          amount?: number
+          description?: string
+          status?: 'pending' | 'settled'
+          settled_at?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'internal_debts_workspace_id_fkey'
+            columns: ['workspace_id']
+            isOneToOne: false
+            referencedRelation: 'workspaces'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'internal_debts_debtor_id_fkey'
+            columns: ['debtor_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'internal_debts_creditor_id_fkey'
+            columns: ['creditor_id']
             isOneToOne: false
             referencedRelation: 'users'
             referencedColumns: ['id']
@@ -295,6 +353,10 @@ export type IncomeUpdate = Database['public']['Tables']['incomes']['Update']
 export type ExpenseRow = Database['public']['Tables']['expenses']['Row']
 export type ExpenseInsert = Database['public']['Tables']['expenses']['Insert']
 export type ExpenseUpdate = Database['public']['Tables']['expenses']['Update']
+
+export type InternalDebtRow = Database['public']['Tables']['internal_debts']['Row']
+export type InternalDebtInsert = Database['public']['Tables']['internal_debts']['Insert']
+export type InternalDebtUpdate = Database['public']['Tables']['internal_debts']['Update']
 
 export type GoalRow = Database['public']['Tables']['goals']['Row']
 export type GoalInsert = Database['public']['Tables']['goals']['Insert']

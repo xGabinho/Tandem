@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="darkBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#18182b"/>
+    </linearGradient>
+
+    <!-- Squircle Border Glow -->
+    <linearGradient id="borderGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#a855f7" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#ec4899" stop-opacity="0.6"/>
+    </linearGradient>
+
+    <!-- Top Bar Gradient -->
+    <linearGradient id="topBarGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="45%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#f472b6"/>
+    </linearGradient>
+
+    <!-- Left Pillar Gradient -->
+    <linearGradient id="leftPillarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="60%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#c084fc"/>
+    </linearGradient>
+
+    <!-- Right Pillar Gradient -->
+    <linearGradient id="rightPillarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="50%" stop-color="#d946ef"/>
+      <stop offset="100%" stop-color="#f472b6"/>
+    </linearGradient>
+
+    <!-- Glass Specular Reflection -->
+    <linearGradient id="glassGloss" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/>
+      <stop offset="35%" stop-color="#ffffff" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
+    </linearGradient>
+
+    <!-- Inner Shadow / Glow Filters -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    
+    <filter id="subtleGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Squircle Base Frame -->
+  <rect x="24" y="24" width="464" height="464" rx="116" fill="url(#darkBg)"/>
+  <rect x="24" y="24" width="464" height="464" rx="116" stroke="url(#borderGlow)" stroke-width="3" fill="none"/>
+
+  <!-- Ambient Glow Behind Logo -->
+  <ellipse cx="256" cy="270" rx="140" ry="120" fill="#a855f7" opacity="0.18" filter="url(#neonGlow)"/>
+
+  <!-- 1. TOP HORIZONTAL BAR (Cap of the T) -->
+  <g filter="url(#subtleGlow)">
+    <rect x="116" y="118" width="280" height="74" rx="37" fill="url(#topBarGrad)"/>
+    <!-- Glass Specular Highlight -->
+    <rect x="122" y="122" width="268" height="32" rx="16" fill="url(#glassGloss)" opacity="0.8"/>
+  </g>
+
+  <!-- 2. LEFT VERTICAL PILLAR (Left Partner) -->
+  <g filter="url(#subtleGlow)">
+    <!-- Custom stylized pill with organic inner arch -->
+    <path d="
+      M 166 208 
+      L 220 208 
+      C 240 208, 248 226, 248 248 
+      L 248 334 
+      C 248 368, 222 394, 188 394 
+      C 162 394, 154 372, 154 346 
+      L 154 238 
+      C 154 220, 158 208, 166 208 Z" 
+      fill="url(#leftPillarGrad)"/>
+    <!-- Highlight -->
+    <path d="
+      M 168 214 
+      L 214 214 
+      C 230 214, 238 228, 238 244 
+      L 238 310 
+      C 230 270, 180 230, 168 214 Z" 
+      fill="url(#glassGloss)" opacity="0.6"/>
+  </g>
+
+  <!-- 3. RIGHT VERTICAL PILLAR (Right Partner) -->
+  <g filter="url(#subtleGlow)">
+    <!-- Mirrored stylized pill with organic inner arch -->
+    <path d="
+      M 292 208 
+      L 346 208 
+      C 354 208, 358 220, 358 238 
+      L 358 346 
+      C 358 372, 350 394, 324 394 
+      C 290 394, 264 368, 264 334 
+      L 264 248 
+      C 264 226, 272 208, 292 208 Z" 
+      fill="url(#rightPillarGrad)"/>
+    <!-- Highlight -->
+    <path d="
+      M 298 214 
+      L 344 214 
+      C 350 214, 352 224, 352 238 
+      L 352 310 
+      C 344 270, 308 230, 298 214 Z" 
+      fill="url(#glassGloss)" opacity="0.6"/>
+  </g>
+</svg>

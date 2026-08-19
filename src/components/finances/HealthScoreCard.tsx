@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react'
 import { ExpenseRow } from '@/types/supabase'
 import { formatCurrency, normalizeToMonthly } from '@/lib/utils/calculations'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import { Activity, CheckCircle2, AlertTriangle, Info, Sparkles, TrendingUp } from 'lucide-react'
 
 interface HealthScoreCardProps {
@@ -21,6 +22,7 @@ export default function HealthScoreCard({
   netBalance,
   expenses,
 }: HealthScoreCardProps) {
+  const { maskAmount } = usePrivacy()
   const analysis = useMemo(() => {
     if (totalIncome <= 0) {
       return null
@@ -150,7 +152,7 @@ export default function HealthScoreCard({
             />
           </div>
           <p className="text-[11px] text-text-muted">
-            ${formatCurrency(analysis.needsTotal)}/mes (Renta, transporte/pasajes, servicios, comida)
+            {maskAmount(analysis.needsTotal)}/mes (Renta, transporte/pasajes, servicios, comida)
           </p>
         </div>
 
@@ -172,7 +174,7 @@ export default function HealthScoreCard({
             />
           </div>
           <p className="text-[11px] text-text-muted">
-            ${formatCurrency(analysis.wantsTotal)}/mes (Streaming, ocio, otros)
+            {maskAmount(analysis.wantsTotal)}/mes (Streaming, ocio, otros)
           </p>
         </div>
 
@@ -192,7 +194,7 @@ export default function HealthScoreCard({
             />
           </div>
           <p className="text-[11px] text-text-muted">
-            ${formatCurrency(analysis.savingsTotal)}/mes (Disponible para metas)
+            {maskAmount(analysis.savingsTotal)}/mes (Disponible para metas)
           </p>
         </div>
       </div>

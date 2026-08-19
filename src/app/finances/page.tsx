@@ -19,6 +19,8 @@ import EditExpenseModal from '@/components/finances/EditExpenseModal'
 import CoupleSplitCard from '@/components/finances/CoupleSplitCard'
 import UpcomingBillsCard from '@/components/finances/UpcomingBillsCard'
 import HealthScoreCard from '@/components/finances/HealthScoreCard'
+import InternalDebtsCard from '@/components/finances/InternalDebtsCard'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 import {
   Plus,
   TrendingUp,
@@ -46,10 +48,16 @@ import {
   Scale,
   Activity,
   Download,
-  Calendar,
+  Dog,
+  Film,
+  ShoppingBag,
+  Plane,
+  Wrench,
+  Gift,
+  HeartHandshake,
 } from 'lucide-react'
 
-type ActiveTab = 'overview' | 'incomes' | 'expenses' | 'couple_split' | 'health' | 'categories'
+type ActiveTab = 'overview' | 'incomes' | 'expenses' | 'debts' | 'couple_split' | 'health' | 'categories'
 
 export const getIncomeIcon = (category: string, size = 18) => {
   switch (category) {
@@ -61,6 +69,8 @@ export const getIncomeIcon = (category: string, size = 18) => {
       return <TrendingUp size={size} className="text-purple-400" />
     case 'business':
       return <Store size={size} className="text-amber-400" />
+    case 'bonus':
+      return <Gift size={size} className="text-pink-400" />
     case 'other':
     default:
       return <Sparkles size={size} className="text-emerald-300" />
@@ -77,6 +87,14 @@ export const getExpenseIcon = (category: string, size = 18) => {
       return <ShoppingCart size={size} className="text-emerald-400" />
     case 'transport':
       return <Car size={size} className="text-amber-400" />
+    case 'pets':
+      return <Dog size={size} className="text-orange-400" />
+    case 'entertainment':
+      return <Film size={size} className="text-purple-400" />
+    case 'shopping':
+      return <ShoppingBag size={size} className="text-fuchsia-400" />
+    case 'travel':
+      return <Plane size={size} className="text-sky-400" />
     case 'subscriptions':
       return <Tv size={size} className="text-pink-400" />
     case 'health':
@@ -85,6 +103,8 @@ export const getExpenseIcon = (category: string, size = 18) => {
       return <CreditCard size={size} className="text-purple-400" />
     case 'education':
       return <GraduationCap size={size} className="text-blue-400" />
+    case 'maintenance':
+      return <Wrench size={size} className="text-teal-400" />
     case 'other':
     default:
       return <Package size={size} className="text-slate-400" />
@@ -96,6 +116,7 @@ const incomeCategoryLabels: Record<string, string> = {
   freelance: 'Freelance / Honorarios',
   investments: 'Inversiones',
   business: 'Negocio',
+  bonus: 'Bonos y Aguinaldos',
   other: 'Otros Ingresos',
 }
 
@@ -104,10 +125,15 @@ const expenseCategoryLabels: Record<string, { label: string; color: string }> = 
   utilities: { label: 'Servicios', color: '#06b6d4' },
   food: { label: 'Alimentación', color: '#10b981' },
   transport: { label: 'Transporte', color: '#f59e0b' },
+  pets: { label: 'Mascotas', color: '#f97316' },
+  entertainment: { label: 'Citas y Ocio', color: '#a855f7' },
+  shopping: { label: 'Compras y Ropa', color: '#d946ef' },
+  travel: { label: 'Viajes', color: '#0ea5e9' },
   subscriptions: { label: 'Suscripciones', color: '#ec4899' },
   health: { label: 'Salud', color: '#ef4444' },
   debt: { label: 'Deudas', color: '#8b5cf6' },
   education: { label: 'Educación', color: '#3b82f6' },
+  maintenance: { label: 'Mantenimiento', color: '#14b8a6' },
   other: { label: 'Otros Gastos', color: '#64748b' },
 }
 
@@ -121,6 +147,7 @@ const frequencyLabels: Record<string, string> = {
 
 export default function FinancesPage() {
   const { profile } = useAuth()
+  const { maskAmount, isPrivate } = usePrivacy()
   const [incomes, setIncomes] = useState<(IncomeRow & { users?: { name: string; avatar_url: string | null } | null })[]>([])
   const [expenses, setExpenses] = useState<(ExpenseRow & { users?: { name: string; avatar_url: string | null } | null })[]>([])
   const [workspaceUsers, setWorkspaceUsers] = useState<UserRow[]>([])
@@ -243,88 +270,90 @@ export default function FinancesPage() {
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {/* Ingresos Totales */}
-        <div className="glass-card p-4 md:p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+        <div className="glass-card p-3.5 sm:p-4 md:p-5 flex flex-col justify-between overflow-hidden">
+          <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
+            <span className="text-[11px] sm:text-xs font-semibold text-text-muted uppercase tracking-wider truncate">
               Ingresos Mensuales
             </span>
-            <div className="w-8 h-8 rounded-full bg-success-soft flex items-center justify-center text-success">
-              <TrendingUp size={18} />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-success-soft flex items-center justify-center text-success shrink-0">
+              <TrendingUp size={16} className="sm:w-[18px] sm:h-[18px]" />
             </div>
           </div>
-          <div>
-            <p className="text-xl md:text-2xl font-bold text-success">
-              ${formatCurrency(summary.totalIncome)}
+          <div className="min-w-0">
+            <p className="text-base sm:text-lg md:text-2xl font-bold text-success truncate">
+              {maskAmount(summary.totalIncome)}
             </p>
-            <p className="text-xs text-text-muted mt-0.5">
+            <p className="text-[11px] sm:text-xs text-text-muted mt-0.5 truncate">
               {incomes.length} fuente{incomes.length !== 1 ? 's' : ''} activa{incomes.length !== 1 ? 's' : ''}
             </p>
           </div>
         </div>
 
         {/* Gastos Totales */}
-        <div className="glass-card p-4 md:p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+        <div className="glass-card p-3.5 sm:p-4 md:p-5 flex flex-col justify-between overflow-hidden">
+          <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
+            <span className="text-[11px] sm:text-xs font-semibold text-text-muted uppercase tracking-wider truncate">
               Gastos Mensuales
             </span>
-            <div className="w-8 h-8 rounded-full bg-danger-soft flex items-center justify-center text-danger">
-              <TrendingDown size={18} />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-danger-soft flex items-center justify-center text-danger shrink-0">
+              <TrendingDown size={16} className="sm:w-[18px] sm:h-[18px]" />
             </div>
           </div>
-          <div>
-            <p className="text-xl md:text-2xl font-bold text-danger">
-              ${formatCurrency(summary.totalExpenses)}
+          <div className="min-w-0">
+            <p className="text-base sm:text-lg md:text-2xl font-bold text-danger truncate">
+              {maskAmount(summary.totalExpenses)}
             </p>
-            <p className="text-xs text-text-muted mt-0.5">
+            <p className="text-[11px] sm:text-xs text-text-muted mt-0.5 truncate">
               {expenses.length} gasto{expenses.length !== 1 ? 's' : ''} fijo{expenses.length !== 1 ? 's' : ''}
             </p>
           </div>
         </div>
 
         {/* Balance Neto (Ingresos - Gastos) */}
-        <div className="glass-card p-4 md:p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+        <div className="glass-card p-3.5 sm:p-4 md:p-5 flex flex-col justify-between overflow-hidden">
+          <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
+            <span className="text-[11px] sm:text-xs font-semibold text-text-muted uppercase tracking-wider truncate">
               Balance Disponible
             </span>
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shrink-0 ${
                 summary.netBalance >= 0 ? 'bg-accent-primary-soft text-accent-primary' : 'bg-danger-soft text-danger'
               }`}
             >
-              <Wallet size={18} />
+              <Wallet size={16} className="sm:w-[18px] sm:h-[18px]" />
             </div>
           </div>
-          <div>
+          <div className="min-w-0">
             <p
-              className={`text-xl md:text-2xl font-bold ${
+              className={`text-base sm:text-lg md:text-2xl font-bold truncate ${
                 summary.netBalance >= 0 ? 'text-accent-primary' : 'text-danger'
               }`}
             >
-              {summary.netBalance < 0 ? '-' : ''}${formatCurrency(Math.abs(summary.netBalance))}
+              {isPrivate
+                ? '$ •••••'
+                : `${summary.netBalance < 0 ? '-' : ''}$${formatCurrency(Math.abs(summary.netBalance))}`}
             </p>
-            <p className="text-xs text-text-muted mt-0.5">
+            <p className="text-[11px] sm:text-xs text-text-muted mt-0.5 truncate">
               Ingresos − Gastos
             </p>
           </div>
         </div>
 
         {/* Tasa de Ahorro */}
-        <div className="glass-card p-4 md:p-5 flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+        <div className="glass-card p-3.5 sm:p-4 md:p-5 flex flex-col justify-between overflow-hidden">
+          <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
+            <span className="text-[11px] sm:text-xs font-semibold text-text-muted uppercase tracking-wider truncate">
               Capacidad de Ahorro
             </span>
-            <div className="w-8 h-8 rounded-full bg-warning-soft flex items-center justify-center text-warning">
-              <PiggyBank size={18} />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-warning-soft flex items-center justify-center text-warning shrink-0">
+              <PiggyBank size={16} className="sm:w-[18px] sm:h-[18px]" />
             </div>
           </div>
-          <div>
-            <p className="text-xl md:text-2xl font-bold text-warning">
+          <div className="min-w-0">
+            <p className="text-base sm:text-lg md:text-2xl font-bold text-warning truncate">
               {summary.savingsRate}%
             </p>
-            <p className="text-xs text-text-muted mt-0.5">
+            <p className="text-[11px] sm:text-xs text-text-muted mt-0.5 truncate">
               Disponible para metas
             </p>
           </div>
@@ -337,7 +366,7 @@ export default function FinancesPage() {
           <div className="flex justify-between items-center text-sm">
             <span className="font-semibold text-text-primary">Distribución del Flujo Mensual</span>
             <span className="text-xs text-text-muted">
-              Total base: ${formatCurrency(summary.totalIncome)}
+              Total base: {maskAmount(summary.totalIncome)}
             </span>
           </div>
           <div className="w-full h-4 bg-bg-surface rounded-full overflow-hidden flex p-0.5 border border-border">
@@ -371,6 +400,7 @@ export default function FinancesPage() {
           { id: 'overview', label: 'Resumen', icon: <BarChart3 size={16} /> },
           { id: 'incomes', label: `Ingresos (${incomes.length})`, icon: <ArrowDownLeft size={16} className="text-emerald-400" /> },
           { id: 'expenses', label: `Gastos (${expenses.length})`, icon: <Receipt size={16} className="text-rose-400" /> },
+          { id: 'debts', label: 'Deudas en Pareja', icon: <HeartHandshake size={16} className="text-pink-400" /> },
           { id: 'couple_split', label: 'División Pareja', icon: <Scale size={16} className="text-indigo-400" /> },
           { id: 'health', label: 'Salud 50/30/20', icon: <Activity size={16} className="text-cyan-400" /> },
           { id: 'categories', label: 'Categorías', icon: <Tags size={16} /> },
@@ -415,38 +445,43 @@ export default function FinancesPage() {
                 </button>
               </div>
               {incomes.length > 0 ? (
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {incomes.map((item) => (
                     <div
                       key={item.id}
                       onClick={() => setEditingIncome(item)}
-                      className="p-3 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all flex items-center justify-between group"
+                      className="p-3.5 sm:p-4 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all space-y-2.5 group"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                          {getIncomeIcon(item.category, 18)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-text-primary truncate group-hover:text-accent-primary transition-colors">
+                      {/* Fila 1: Icono + Título + Monto */}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                            {getIncomeIcon(item.category, 20)}
+                          </div>
+                          <p className="text-sm sm:text-base font-bold text-text-primary truncate group-hover:text-accent-primary transition-colors min-w-0">
                             {item.title}
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-text-muted">
-                            <span>{incomeCategoryLabels[item.category] || item.category}</span>
-                            <span>•</span>
-                            <span>{frequencyLabels[item.frequency] || item.frequency}</span>
-                            {item.users?.name && (
-                              <>
-                                <span>•</span>
-                                <span>{item.users.name}</span>
-                              </>
-                            )}
-                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-sm sm:text-base font-extrabold text-success tracking-tight bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20 inline-block">
+                            {maskAmount(item.amount, '+$')}
+                          </span>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-success">
-                          +${formatCurrency(item.amount)}
-                        </p>
+
+                      {/* Fila 2: Chips de metadatos independientes */}
+                      <div className="flex items-center gap-2 text-[11px] text-text-muted flex-wrap pl-[52px]">
+                        <span className="px-2 py-0.5 rounded-full bg-bg-card border border-border font-medium text-text-secondary">
+                          {incomeCategoryLabels[item.category] || item.category}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-bg-card border border-border font-medium text-text-secondary">
+                          {frequencyLabels[item.frequency] || item.frequency}
+                        </span>
+                        {item.users?.name && (
+                          <span className="px-2 py-0.5 rounded-full bg-accent-primary-soft text-accent-primary font-semibold border border-accent-primary/20">
+                            👤 {item.users.name}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -476,42 +511,45 @@ export default function FinancesPage() {
                 </button>
               </div>
               {expenses.length > 0 ? (
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {expenses.map((item) => (
                     <div
                       key={item.id}
                       onClick={() => setEditingExpense(item)}
-                      className="p-3 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all flex items-center justify-between group"
+                      className="p-3.5 sm:p-4 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all space-y-2.5 group"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
-                          {getExpenseIcon(item.category, 18)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-text-primary truncate group-hover:text-accent-primary transition-colors">
+                      {/* Fila 1: Icono + Título + Monto */}
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                            {getExpenseIcon(item.category, 20)}
+                          </div>
+                          <p className="text-sm sm:text-base font-bold text-text-primary truncate group-hover:text-accent-primary transition-colors min-w-0">
                             {item.title}
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-text-muted">
-                            <span>{expenseCategoryLabels[item.category]?.label || item.category}</span>
-                            {item.due_day && (
-                              <>
-                                <span>•</span>
-                                <span>Día {item.due_day}</span>
-                              </>
-                            )}
-                            {item.users?.name && (
-                              <>
-                                <span>•</span>
-                                <span>{item.users.name}</span>
-                              </>
-                            )}
-                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-sm sm:text-base font-extrabold text-danger tracking-tight bg-rose-500/10 px-2.5 py-1 rounded-md border border-rose-500/20 inline-block">
+                            {maskAmount(item.amount, '-$')}
+                          </span>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-danger">
-                          -${formatCurrency(item.amount)}
-                        </p>
+
+                      {/* Fila 2: Chips de metadatos independientes */}
+                      <div className="flex items-center gap-2 text-[11px] text-text-muted flex-wrap pl-[52px]">
+                        <span className="px-2 py-0.5 rounded-full bg-bg-card border border-border font-medium text-text-secondary">
+                          {expenseCategoryLabels[item.category]?.label || item.category}
+                        </span>
+                        {item.due_day && (
+                          <span className="px-2 py-0.5 rounded-full bg-bg-card border border-border font-medium text-text-primary">
+                            📅 Vence día {item.due_day}
+                          </span>
+                        )}
+                        {item.users?.name && (
+                          <span className="px-2 py-0.5 rounded-full bg-accent-primary-soft text-accent-primary font-semibold border border-accent-primary/20">
+                            👤 {item.users.name}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -542,32 +580,44 @@ export default function FinancesPage() {
             </Button>
           </div>
           {incomes.length > 0 ? (
-            <div className="divide-y divide-border">
+            <div className="space-y-3">
               {incomes.map((item) => (
                 <div
                   key={item.id}
                   onClick={() => setEditingIncome(item)}
-                  className="py-3.5 flex items-center justify-between hover:bg-bg-card-hover px-3 rounded-[var(--radius-md)] cursor-pointer transition-all"
+                  className="p-4 rounded-[var(--radius-lg)] hover:bg-bg-card-hover border border-border/60 bg-bg-surface/50 cursor-pointer transition-all space-y-2.5 group"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                      {getIncomeIcon(item.category, 20)}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                        {getIncomeIcon(item.category, 20)}
+                      </div>
+                      <p className="font-bold text-text-primary truncate min-w-0 text-sm sm:text-base">
+                        {item.title}
+                      </p>
                     </div>
-                    <div>
-                      <p className="font-semibold text-text-primary">{item.title}</p>
-                      <p className="text-xs text-text-muted">
-                        {incomeCategoryLabels[item.category] || item.category} • {frequencyLabels[item.frequency] || item.frequency}
-                        {item.users?.name ? ` • Aportado por ${item.users.name}` : ''}
+                    <div className="text-right shrink-0">
+                      <p className="text-base sm:text-lg font-extrabold text-success">
+                        {maskAmount(item.amount, '+$')}
+                      </p>
+                      <p className="text-[11px] text-text-muted">
+                        {maskAmount(normalizeToMonthly(item.amount, item.frequency))}/mes
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-base font-bold text-success">
-                      +${formatCurrency(item.amount)}
-                    </p>
-                    <p className="text-[11px] text-text-muted">
-                      ${formatCurrency(normalizeToMonthly(item.amount, item.frequency))}/mes
-                    </p>
+
+                  <div className="flex items-center gap-2 text-[11px] text-text-muted flex-wrap pl-[52px]">
+                    <span className="px-2 py-0.5 rounded-full bg-bg-card border border-border font-medium text-text-secondary">
+                      {incomeCategoryLabels[item.category] || item.category}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-bg-card border border-border font-medium text-text-secondary">
+                      {frequencyLabels[item.frequency] || item.frequency}
+                    </span>
+                    {item.users?.name && (
+                      <span className="px-2 py-0.5 rounded-full bg-accent-primary-soft text-accent-primary font-semibold border border-accent-primary/20">
+                        👤 Aportado por {item.users.name}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -600,33 +650,49 @@ export default function FinancesPage() {
             </Button>
           </div>
           {expenses.length > 0 ? (
-            <div className="divide-y divide-border">
+            <div className="space-y-3">
               {expenses.map((item) => (
                 <div
                   key={item.id}
                   onClick={() => setEditingExpense(item)}
-                  className="py-3.5 flex items-center justify-between hover:bg-bg-card-hover px-3 rounded-[var(--radius-md)] cursor-pointer transition-all"
+                  className="p-4 rounded-[var(--radius-lg)] hover:bg-bg-card-hover border border-border/60 bg-bg-surface/50 cursor-pointer transition-all space-y-2.5 group"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
-                      {getExpenseIcon(item.category, 20)}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                        {getExpenseIcon(item.category, 20)}
+                      </div>
+                      <p className="font-bold text-text-primary truncate min-w-0 text-sm sm:text-base">
+                        {item.title}
+                      </p>
                     </div>
-                    <div>
-                      <p className="font-semibold text-text-primary">{item.title}</p>
-                      <p className="text-xs text-text-muted">
-                        {expenseCategoryLabels[item.category]?.label || item.category} • {frequencyLabels[item.frequency] || item.frequency}
-                        {item.due_day ? ` • Vence el día ${item.due_day}` : ''}
-                        {item.users?.name ? ` • Responsable: ${item.users.name}` : ''}
+                    <div className="text-right shrink-0">
+                      <p className="text-base sm:text-lg font-extrabold text-danger">
+                        {maskAmount(item.amount, '-$')}
+                      </p>
+                      <p className="text-[11px] text-text-muted">
+                        {maskAmount(normalizeToMonthly(item.amount, item.frequency))}/mes
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-base font-bold text-danger">
-                      -${formatCurrency(item.amount)}
-                    </p>
-                    <p className="text-[11px] text-text-muted">
-                      ${formatCurrency(normalizeToMonthly(item.amount, item.frequency))}/mes
-                    </p>
+
+                  <div className="flex items-center gap-2 text-[11px] text-text-muted flex-wrap pl-[52px]">
+                    <span className="px-2 py-0.5 rounded-full bg-bg-card border border-border font-medium text-text-secondary">
+                      {expenseCategoryLabels[item.category]?.label || item.category}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-bg-card border border-border font-medium text-text-secondary">
+                      {frequencyLabels[item.frequency] || item.frequency}
+                    </span>
+                    {item.due_day && (
+                      <span className="px-2 py-0.5 rounded-full bg-bg-card border border-border font-medium text-text-primary">
+                        📅 Vence día {item.due_day}
+                      </span>
+                    )}
+                    {item.users?.name && (
+                      <span className="px-2 py-0.5 rounded-full bg-accent-primary-soft text-accent-primary font-semibold border border-accent-primary/20">
+                        👤 Responsable: {item.users.name}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -698,7 +764,7 @@ export default function FinancesPage() {
                     </div>
                     <div className="text-right">
                       <span className="font-bold text-text-primary">
-                        ${formatCurrency(item.total)}
+                        {maskAmount(item.total)}
                       </span>
                       <span className="text-xs text-text-muted ml-2">
                         ({item.percentage.toFixed(1)}%)
@@ -724,6 +790,9 @@ export default function FinancesPage() {
           )}
         </div>
       )}
+
+      {/* TAB: DEUDAS EN PAREJA */}
+      {activeTab === 'debts' && <InternalDebtsCard />}
 
       {/* Modals */}
       <CreateIncomeModal

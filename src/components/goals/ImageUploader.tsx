@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, ChangeEvent } from 'react'
+import { useState, useEffect, useRef, ChangeEvent } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import Button from '@/components/ui/Button'
 
@@ -24,6 +24,10 @@ export default function ImageUploader({
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    setPreviewUrl(currentImageUrl || null)
+  }, [currentImageUrl])
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

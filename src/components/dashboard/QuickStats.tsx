@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { formatCurrency } from '@/lib/utils/calculations'
+import { usePrivacy } from '@/contexts/PrivacyContext'
 
 interface StatItem {
   label: string
@@ -55,6 +56,8 @@ function AnimatedNumber({
 }
 
 export default function QuickStats({ stats }: QuickStatsProps) {
+  const { isPrivate } = usePrivacy()
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
       {stats.map((stat, index) => (
@@ -73,11 +76,15 @@ export default function QuickStats({ stats }: QuickStatsProps) {
             {stat.label}
           </p>
           <p className="text-xl md:text-2xl font-bold text-text-primary">
-            <AnimatedNumber
-              value={stat.value}
-              prefix={stat.prefix}
-              suffix={stat.suffix}
-            />
+            {isPrivate && stat.prefix === '$' ? (
+              <span>$ •••••</span>
+            ) : (
+              <AnimatedNumber
+                value={stat.value}
+                prefix={stat.prefix}
+                suffix={stat.suffix}
+              />
+            )}
           </p>
         </div>
       ))}

@@ -63,13 +63,26 @@ CREATE TABLE IF NOT EXISTS incomes (
 CREATE TABLE IF NOT EXISTS expenses (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE NOT NULL,
-    user_id REFERENCES users(id) ON DELETE SET NULL,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
     title VARCHAR(150) NOT NULL,
     amount DECIMAL(12, 2) NOT NULL CHECK (amount > 0),
     category VARCHAR(50) DEFAULT 'housing',
     due_day INTEGER CHECK (due_day >= 1 AND due_day <= 31),
     frequency VARCHAR(20) DEFAULT 'monthly' CHECK (frequency IN ('monthly', 'biweekly', 'one_time', 'weekly', 'yearly')),
     is_fixed BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 7. Tabla de Deudas Internas entre la Pareja (IOU / Préstamos y Gastos Compartidos)
+CREATE TABLE IF NOT EXISTS internal_debts (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE NOT NULL,
+    debtor_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    creditor_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL CHECK (amount > 0),
+    description VARCHAR(255) NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'settled')),
+    settled_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -216,6 +229,17 @@ FOR SELECT USING (workspace_id = get_user_workspace_id());
 
 DROP POLICY IF EXISTS "Gestionar gastos del espacio" ON expenses;
 CREATE POLICY "Gestionar gastos del espacio" ON expenses 
+FOR ALL USING (workspace_id = get_user_workspace_id());
+
+-- Políticas para internal_debts
+ALTER TABLE internal_debts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Ver deudas del espacio" ON internal_debts;
+CREATE POLICY "Ver deudas del espacio" ON internal_debts 
+FOR SELECT USING (workspace_id = get_user_workspace_id());
+
+DROP POLICY IF EXISTS "Gestionar deudas del espacio" ON internal_debts;
+CREATE POLICY "Gestionar deudas del espacio" ON internal_debts 
 FOR ALL USING (workspace_id = get_user_workspace_id());
 
 -- ==============================================================================

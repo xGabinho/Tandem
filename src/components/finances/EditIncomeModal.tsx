@@ -7,13 +7,7 @@ import { IncomeRow, UserRow } from '@/types/supabase'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import {
-  Briefcase,
-  Laptop,
-  TrendingUp,
-  Store,
-  Sparkles,
-} from 'lucide-react'
+import { incomeCategories } from './CreateIncomeModal'
 
 interface EditIncomeModalProps {
   income: IncomeRow | null
@@ -22,13 +16,7 @@ interface EditIncomeModalProps {
   onUpdated: () => void
 }
 
-const categories = [
-  { id: 'salary', label: 'Salario / Nómina', icon: <Briefcase size={16} className="text-emerald-400" /> },
-  { id: 'freelance', label: 'Freelance / Honorarios', icon: <Laptop size={16} className="text-blue-400" /> },
-  { id: 'investments', label: 'Inversiones / Rendimientos', icon: <TrendingUp size={16} className="text-purple-400" /> },
-  { id: 'business', label: 'Negocio / Emprendimiento', icon: <Store size={16} className="text-amber-400" /> },
-  { id: 'other', label: 'Otros Ingresos', icon: <Sparkles size={16} className="text-emerald-300" /> },
-] as const
+const categories = incomeCategories
 
 const frequencies = [
   { id: 'monthly', label: 'Mensual' },
@@ -59,7 +47,7 @@ export default function EditIncomeModal({
     if (income && isOpen) {
       setTitle(income.title)
       setAmount(income.amount.toString())
-      setCategory(income.category)
+      setCategory((income.category as typeof categories[number]['id']) || 'salary')
       setFrequency(income.frequency)
       setAssignedUserId(income.user_id || '')
       setError('')

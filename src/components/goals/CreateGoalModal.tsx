@@ -45,6 +45,11 @@ export default function CreateGoalModal({
   const [referenceLinks, setReferenceLinks] = useState('')
   const [imageUrl, setImageUrl] = useState<string | null>(null)
 
+  // Smart link scraping fields
+  const [quickLinkInput, setQuickLinkInput] = useState('')
+  const [isFetchingMetadata, setIsFetchingMetadata] = useState(false)
+  const [fetchSuccessMessage, setFetchSuccessMessage] = useState('')
+
   const resetForm = () => {
     setStep('type')
     setTitle('')
@@ -53,7 +58,54 @@ export default function CreateGoalModal({
     setPriority('medium')
     setReferenceLinks('')
     setImageUrl(null)
+    setQuickLinkInput('')
+    setFetchSuccessMessage('')
     setError('')
+  }
+
+  const handleFetchMetadata = async (customUrl?: string) => {
+    const urlToFetch = (customUrl || quickLinkInput).trim()
+    if (!urlToFetch) return
+    setIsFetchingMetadata(true)
+    setFetchSuccessMessage('')
+    setError('')
+
+    try {
+      const res = await fetch('/api/preview-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlToFetch }),
+      })
+      const data = await res.json()
+
+      if (data.success && data.metadata) {
+        const meta = data.metadata
+        if (meta.title) {
+          setTitle(meta.title.slice(0, 150))
+        }
+        if (meta.image) {
+          setImageUrl(meta.image)
+        }
+        if (meta.price) {
+          setTargetAmount(meta.price.toString())
+        }
+
+        // Add to referenceLinks
+        const newLink = meta.affiliatedUrl || urlToFetch
+        setReferenceLinks((prev) => (prev ? `${prev}\n${newLink}` : newLink))
+        setQuickLinkInput('')
+        setFetchSuccessMessage(
+          `¡Enlace de ${meta.platformName || 'tienda'} procesado con éxito! Se autocompletaron los detalles ✨`
+        )
+        // Pasar directamente al formulario
+        setStep('form')
+      }
+    } catch {
+      setError('No se pudieron extraer datos del enlace. Puedes completar los campos manualmente.')
+      setStep('form')
+    } finally {
+      setIsFetchingMetadata(false)
+    }
   }
 
   const handleClose = () => {
@@ -103,12 +155,14 @@ export default function CreateGoalModal({
       image_url: imageUrl,
     }
 
-    if (selectedType === 'savings') {
+    if (targetAmount && parseFloat(targetAmount) > 0) {
       goal.target_amount = parseFloat(parseFloat(targetAmount).toFixed(2))
+    }
+    if (targetDate) {
       goal.target_date = targetDate
     }
 
-    if (selectedType === 'quoting' && referenceLinks.trim()) {
+    if (referenceLinks.trim()) {
       const links = referenceLinks
         .split('\n')
         .map((l) => l.trim())
@@ -132,40 +186,128 @@ export default function CreateGoalModal({
       isOpen={isOpen}
       onClose={handleClose}
       title={step === 'type' ? 'Nueva Meta' : `Nueva Meta — ${types.find((t) => t.id === selectedType)?.label}`}
-      subtitle={step === 'type' ? '¿Qué tipo de meta quieres crear?' : 'Completa los detalles'}
+      subtitle={step === 'type' ? '¿Cómo deseas comenzar tu meta?' : 'Completa los detalles'}
       size="lg"
     >
-      {/* Step 1: Choose Type */}
+      {/* Step 1: Choose Type or Paste Link */}
       {step === 'type' && (
-        <div className="space-y-3">
-          {types.map((type) => (
-            <button
-              key={type.id}
-              onClick={() => {
-                setSelectedType(type.id)
-                setStep('form')
-              }}
-              className="w-full p-4 rounded-[var(--radius-lg)] bg-bg-surface border border-border hover:border-border-hover hover:bg-bg-card-hover transition-all text-left group"
-            >
-              <div className="flex items-start gap-3.5">
-                <div className="w-10 h-10 rounded-full bg-bg-card flex items-center justify-center shrink-0 border border-border">
-                  {type.icon}
+        <div className="space-y-4">
+          {/* Quick Import from Store Link */}
+          <div className="p-4 rounded-[var(--radius-lg)] bg-gradient-to-r from-accent-primary-soft/40 to-accent-secondary/10 border border-accent-primary/30 space-y-2.5">
+            <div className="flex items-center justify-between flex-wrap gap-1">
+              <label className="text-xs font-bold text-accent-primary flex items-center gap-1.5">
+                <Sparkles size={15} />
+                <span>¿Tienes el enlace de una tienda? (Importación rápida)</span>
+              </label>
+              <span className="text-[10px] text-text-muted">Amazon, MercadoLibre, IKEA...</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                placeholder="Pega el link de la tienda aquí para autocompletar..."
+                value={quickLinkInput}
+                onChange={(e) => setQuickLinkInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleFetchMetadata()
+                  }
+                }}
+                className="flex-1 bg-bg-surface border border-border rounded-[var(--radius-md)] px-3 py-2.5 text-xs text-text-primary placeholder:text-text-muted outline-none focus:border-accent-primary"
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="primary"
+                onClick={() => handleFetchMetadata()}
+                loading={isFetchingMetadata}
+                disabled={!quickLinkInput.trim()}
+              >
+                Importar →
+              </Button>
+            </div>
+            <p className="text-[11px] text-text-muted">
+              Extraeremos automáticamente la foto oficial, el nombre y los datos del producto.
+            </p>
+          </div>
+
+          <div className="relative flex py-1 items-center">
+            <div className="flex-grow border-t border-border"></div>
+            <span className="flex-shrink mx-3 text-xs text-text-muted font-medium">o elige una categoría</span>
+            <div className="flex-grow border-t border-border"></div>
+          </div>
+
+          <div className="space-y-2.5">
+            {types.map((type) => (
+              <button
+                key={type.id}
+                onClick={() => {
+                  setSelectedType(type.id)
+                  setStep('form')
+                }}
+                className="w-full p-4 rounded-[var(--radius-lg)] bg-bg-surface border border-border hover:border-border-hover hover:bg-bg-card-hover transition-all text-left group"
+              >
+                <div className="flex items-start gap-3.5">
+                  <div className="w-10 h-10 rounded-full bg-bg-card flex items-center justify-center shrink-0 border border-border">
+                    {type.icon}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-text-primary group-hover:text-accent-primary transition-colors">
+                      {type.label}
+                    </p>
+                    <p className="text-xs text-text-muted mt-0.5">{type.desc}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-text-primary group-hover:text-accent-primary transition-colors">
-                    {type.label}
-                  </p>
-                  <p className="text-xs text-text-muted mt-0.5">{type.desc}</p>
-                </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Step 2: Form */}
       {step === 'form' && (
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Smart Link Scraper & Incentive */}
+          <div className="p-3.5 rounded-[var(--radius-lg)] bg-accent-primary-soft/30 border border-accent-primary/20 space-y-2">
+            <div className="flex items-center justify-between flex-wrap gap-1">
+              <label className="text-xs font-bold text-accent-primary flex items-center gap-1.5">
+                <Sparkles size={14} />
+                <span>¿Tienes el link de la tienda? (Opcional)</span>
+              </label>
+              <span className="text-[10px] text-text-muted">Amazon, MercadoLibre, Booking...</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                placeholder="Pega el enlace del producto para autocompletar..."
+                value={quickLinkInput}
+                onChange={(e) => setQuickLinkInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleFetchMetadata()
+                  }
+                }}
+                className="flex-1 bg-bg-surface border border-border rounded-[var(--radius-md)] px-3 py-2 text-xs text-text-primary placeholder:text-text-muted outline-none focus:border-accent-primary"
+              />
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                onClick={() => handleFetchMetadata()}
+                loading={isFetchingMetadata}
+                disabled={!quickLinkInput.trim()}
+              >
+                Autocompletar
+              </Button>
+            </div>
+            {fetchSuccessMessage && (
+              <p className="text-xs text-success flex items-center gap-1">
+                <span>✓</span> {fetchSuccessMessage}
+              </p>
+            )}
+          </div>
+
           <Input
             label="Título de la meta"
             placeholder="Ej: Departamento nuevo, Viaje a Japón..."
@@ -174,7 +316,7 @@ export default function CreateGoalModal({
             autoFocus
           />
 
-          {selectedType === 'savings' && (
+          {selectedType === 'savings' ? (
             <>
               <Input
                 label="Monto objetivo"
@@ -194,22 +336,32 @@ export default function CreateGoalModal({
                 min={new Date().toISOString().split('T')[0]}
               />
             </>
+          ) : (
+            <Input
+              label="Monto o precio estimado (opcional)"
+              type="number"
+              placeholder="0.00"
+              value={targetAmount}
+              onChange={(e) => setTargetAmount(e.target.value)}
+              min="0.01"
+              step="0.01"
+              icon={<span className="text-sm font-bold">$</span>}
+            />
           )}
 
-          {selectedType === 'quoting' && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-text-secondary pl-1">
-                Enlaces de referencia
-              </label>
-              <textarea
-                placeholder="Pega un enlace por línea..."
-                value={referenceLinks}
-                onChange={(e) => setReferenceLinks(e.target.value)}
-                rows={3}
-                className="w-full bg-bg-input border border-border rounded-[var(--radius-lg)] px-4 py-3 text-sm text-text-primary placeholder:text-text-muted outline-none focus:border-accent-primary focus:shadow-[0_0_0_3px_var(--accent-primary-soft)] transition-all resize-none"
-              />
-            </div>
-          )}
+          {/* Enlaces de referencia */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-text-secondary pl-1">
+              Enlaces de referencia / tiendas {selectedType !== 'quoting' && '(opcional)'}
+            </label>
+            <textarea
+              placeholder="Pega un enlace por línea (Amazon, MercadoLibre, etc.)..."
+              value={referenceLinks}
+              onChange={(e) => setReferenceLinks(e.target.value)}
+              rows={2}
+              className="w-full bg-bg-input border border-border rounded-[var(--radius-lg)] px-4 py-2.5 text-xs text-text-primary placeholder:text-text-muted outline-none focus:border-accent-primary focus:shadow-[0_0_0_3px_var(--accent-primary-soft)] transition-all resize-none"
+            />
+          </div>
 
           <ImageUploader
             currentImageUrl={imageUrl}

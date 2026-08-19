@@ -46,28 +46,49 @@ export default function LoginPage() {
       return
     }
 
+    const isSupabaseConfigured =
+      Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
+      !process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder')
+
+    if (!isSupabaseConfigured) {
+      setError(
+        'Falta configurar las credenciales de Supabase. Crea el archivo .env.local en la raíz con NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY.'
+      )
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
 
     const { error: signInError } = await signIn(email, password)
 
     if (signInError) {
-      const newAttempts = attempts + 1
-      setAttempts(newAttempts)
+      // Diferenciar error de credenciales vs error de red/servidor
+      const isInvalidCredentials =
+        signInError.toLowerCase().includes('invalid login credentials') ||
+        signInError.toLowerCase().includes('invalid credentials')
 
-      if (newAttempts >= MAX_ATTEMPTS) {
-        setLockedUntil(Date.now() + LOCKOUT_DURATION)
-        setError(
-          'Has superado el límite de intentos. Espera 5 minutos para volver a intentarlo.'
-        )
-        // Resetear después del periodo de bloqueo
-        setTimeout(() => {
-          setAttempts(0)
-          setLockedUntil(null)
-        }, LOCKOUT_DURATION)
+      if (isInvalidCredentials) {
+        const newAttempts = attempts + 1
+        setAttempts(newAttempts)
+
+        if (newAttempts >= MAX_ATTEMPTS) {
+          setLockedUntil(Date.now() + LOCKOUT_DURATION)
+          setError(
+            'Has superado el límite de intentos. Espera 5 minutos para volver a intentarlo.'
+          )
+          setTimeout(() => {
+            setAttempts(0)
+            setLockedUntil(null)
+          }, LOCKOUT_DURATION)
+        } else {
+          setError(
+            `Credenciales inválidas. Te quedan ${MAX_ATTEMPTS - newAttempts} intento(s).`
+          )
+        }
       } else {
-        setError(
-          `Credenciales inválidas. ${MAX_ATTEMPTS - newAttempts} intento(s) restante(s).`
-        )
+        // Mostrar mensaje detallado de Supabase (ej: Email not confirmed, Network error, etc.)
+        setError(signInError)
       }
     } else {
       router.push('/dashboard')

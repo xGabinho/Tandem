@@ -1,9 +1,9 @@
-'use client'
-
+import React from 'react'
 import Badge from '@/components/ui/Badge'
 import { formatCurrency } from '@/lib/utils/calculations'
 import { Database } from '@/types/supabase'
 import Link from 'next/link'
+import { PiggyBank, Search, Sparkles, Check } from 'lucide-react'
 
 type GoalRow = Database['public']['Tables']['goals']['Row']
 
@@ -13,9 +13,9 @@ interface GoalCardProps {
 }
 
 const typeConfig = {
-  savings: { label: 'Ahorro', emoji: '💰', variant: 'success' as const },
-  quoting: { label: 'Cotización', emoji: '🔍', variant: 'info' as const },
-  experience: { label: 'Experiencia', emoji: '⭐', variant: 'accent' as const },
+  savings: { label: 'Ahorro', icon: <PiggyBank size={13} />, placeholderIcon: <PiggyBank size={48} className="text-emerald-400 opacity-40" />, variant: 'success' as const },
+  quoting: { label: 'Cotización', icon: <Search size={13} />, placeholderIcon: <Search size={48} className="text-blue-400 opacity-40" />, variant: 'info' as const },
+  experience: { label: 'Experiencia', icon: <Sparkles size={13} />, placeholderIcon: <Sparkles size={48} className="text-amber-400 opacity-40" />, variant: 'accent' as const },
 }
 
 const priorityConfig = {
@@ -47,10 +47,10 @@ export default function GoalCard({ goal, totalContributions = 0 }: GoalCardProps
             />
           ) : (
             <div
-              className="w-full h-full flex items-center justify-center text-5xl opacity-30"
+              className="w-full h-full flex items-center justify-center"
               style={{ background: 'var(--accent-primary-soft)' }}
             >
-              {type.emoji}
+              {type.placeholderIcon}
             </div>
           )}
 
@@ -58,7 +58,7 @@ export default function GoalCard({ goal, totalContributions = 0 }: GoalCardProps
           {goal.status === 'completed' && (
             <div className="absolute inset-0 bg-bg-primary/60 flex items-center justify-center">
               <Badge variant="success" size="md">
-                ✓ Completada
+                <Check size={12} className="inline mr-1" /> Completada
               </Badge>
             </div>
           )}
@@ -69,7 +69,10 @@ export default function GoalCard({ goal, totalContributions = 0 }: GoalCardProps
           {/* Badges */}
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant={type.variant} size="sm">
-              {type.emoji} {type.label}
+              <span className="inline-flex items-center gap-1">
+                {type.icon}
+                {type.label}
+              </span>
             </Badge>
             <Badge variant={priority.variant} size="sm" dot>
               {priority.label}

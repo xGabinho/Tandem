@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
+import React, { useState, FormEvent, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { createExpense } from '@/lib/api/finances'
 import { getWorkspaceUsers } from '@/lib/api/workspaces'
@@ -8,6 +8,17 @@ import { ExpenseInsert, UserRow } from '@/types/supabase'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import {
+  Home,
+  Zap,
+  ShoppingCart,
+  Car,
+  Tv,
+  HeartPulse,
+  CreditCard,
+  GraduationCap,
+  Package,
+} from 'lucide-react'
 
 interface CreateExpenseModalProps {
   isOpen: boolean
@@ -16,15 +27,15 @@ interface CreateExpenseModalProps {
 }
 
 export const expenseCategories = [
-  { id: 'housing', label: 'Vivienda / Renta / Hipoteca', emoji: '🏠' },
-  { id: 'utilities', label: 'Servicios (Luz, Agua, Internet)', emoji: '⚡' },
-  { id: 'food', label: 'Alimentación / Supermercado', emoji: '🛒' },
-  { id: 'transport', label: 'Transporte / Gasolina', emoji: '🚗' },
-  { id: 'subscriptions', label: 'Suscripciones / Streaming', emoji: '📺' },
-  { id: 'health', label: 'Salud y Seguros', emoji: '🩺' },
-  { id: 'debt', label: 'Deudas y Tarjetas', emoji: '💳' },
-  { id: 'education', label: 'Educación', emoji: '📚' },
-  { id: 'other', label: 'Otros Gastos', emoji: '📦' },
+  { id: 'housing', label: 'Vivienda / Renta', icon: <Home size={16} className="text-indigo-400" /> },
+  { id: 'utilities', label: 'Servicios (Luz, Agua, Net)', icon: <Zap size={16} className="text-cyan-400" /> },
+  { id: 'food', label: 'Alimentación / Super', icon: <ShoppingCart size={16} className="text-emerald-400" /> },
+  { id: 'transport', label: 'Transporte / Gasolina', icon: <Car size={16} className="text-amber-400" /> },
+  { id: 'subscriptions', label: 'Suscripciones / Streaming', icon: <Tv size={16} className="text-pink-400" /> },
+  { id: 'health', label: 'Salud y Seguros', icon: <HeartPulse size={16} className="text-rose-400" /> },
+  { id: 'debt', label: 'Deudas y Tarjetas', icon: <CreditCard size={16} className="text-purple-400" /> },
+  { id: 'education', label: 'Educación', icon: <GraduationCap size={16} className="text-blue-400" /> },
+  { id: 'other', label: 'Otros Gastos', icon: <Package size={16} className="text-slate-400" /> },
 ] as const
 
 const frequencies = [
@@ -214,7 +225,9 @@ export default function CreateExpenseModal({
                     : 'bg-bg-surface border-border text-text-muted hover:border-border-hover hover:text-text-primary'
                 }`}
               >
-                <span className="text-base">{cat.emoji}</span>
+                <div className="w-5 h-5 rounded-full bg-bg-card flex items-center justify-center shrink-0">
+                  {cat.icon}
+                </div>
                 <span className="truncate">{cat.label}</span>
               </button>
             ))}

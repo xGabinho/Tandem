@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { getIncomes, getExpenses } from '@/lib/api/finances'
 import { IncomeRow, ExpenseRow } from '@/types/supabase'
@@ -21,28 +21,85 @@ import {
   DollarSign,
   PiggyBank,
   Wallet,
+  Briefcase,
+  Laptop,
+  Store,
+  Sparkles,
+  Home,
+  Zap,
+  ShoppingCart,
+  Car,
+  Tv,
+  HeartPulse,
+  CreditCard,
+  GraduationCap,
+  Package,
+  BarChart3,
+  ArrowDownLeft,
+  Receipt,
+  Tags,
 } from 'lucide-react'
 
 type ActiveTab = 'overview' | 'incomes' | 'expenses' | 'categories'
 
-const incomeCategoryMeta: Record<string, { label: string; emoji: string }> = {
-  salary: { label: 'Salario', emoji: '💼' },
-  freelance: { label: 'Freelance', emoji: '💻' },
-  investments: { label: 'Inversiones', emoji: '📈' },
-  business: { label: 'Negocio', emoji: '🏪' },
-  other: { label: 'Otros', emoji: '✨' },
+export const getIncomeIcon = (category: string, size = 18) => {
+  switch (category) {
+    case 'salary':
+      return <Briefcase size={size} className="text-emerald-400" />
+    case 'freelance':
+      return <Laptop size={size} className="text-blue-400" />
+    case 'investments':
+      return <TrendingUp size={size} className="text-purple-400" />
+    case 'business':
+      return <Store size={size} className="text-amber-400" />
+    case 'other':
+    default:
+      return <Sparkles size={size} className="text-emerald-300" />
+  }
 }
 
-const expenseCategoryMeta: Record<string, { label: string; emoji: string; color: string }> = {
-  housing: { label: 'Vivienda / Renta', emoji: '🏠', color: '#6366f1' },
-  utilities: { label: 'Servicios', emoji: '⚡', color: '#06b6d4' },
-  food: { label: 'Alimentación', emoji: '🛒', color: '#10b981' },
-  transport: { label: 'Transporte', emoji: '🚗', color: '#f59e0b' },
-  subscriptions: { label: 'Suscripciones', emoji: '📺', color: '#ec4899' },
-  health: { label: 'Salud', emoji: '🩺', color: '#ef4444' },
-  debt: { label: 'Deudas', emoji: '💳', color: '#8b5cf6' },
-  education: { label: 'Educación', emoji: '📚', color: '#3b82f6' },
-  other: { label: 'Otros', emoji: '📦', color: '#64748b' },
+export const getExpenseIcon = (category: string, size = 18) => {
+  switch (category) {
+    case 'housing':
+      return <Home size={size} className="text-indigo-400" />
+    case 'utilities':
+      return <Zap size={size} className="text-cyan-400" />
+    case 'food':
+      return <ShoppingCart size={size} className="text-emerald-400" />
+    case 'transport':
+      return <Car size={size} className="text-amber-400" />
+    case 'subscriptions':
+      return <Tv size={size} className="text-pink-400" />
+    case 'health':
+      return <HeartPulse size={size} className="text-rose-400" />
+    case 'debt':
+      return <CreditCard size={size} className="text-purple-400" />
+    case 'education':
+      return <GraduationCap size={size} className="text-blue-400" />
+    case 'other':
+    default:
+      return <Package size={size} className="text-slate-400" />
+  }
+}
+
+const incomeCategoryLabels: Record<string, string> = {
+  salary: 'Salario / Nómina',
+  freelance: 'Freelance / Honorarios',
+  investments: 'Inversiones',
+  business: 'Negocio',
+  other: 'Otros Ingresos',
+}
+
+const expenseCategoryLabels: Record<string, { label: string; color: string }> = {
+  housing: { label: 'Vivienda / Renta', color: '#6366f1' },
+  utilities: { label: 'Servicios', color: '#06b6d4' },
+  food: { label: 'Alimentación', color: '#10b981' },
+  transport: { label: 'Transporte', color: '#f59e0b' },
+  subscriptions: { label: 'Suscripciones', color: '#ec4899' },
+  health: { label: 'Salud', color: '#ef4444' },
+  debt: { label: 'Deudas', color: '#8b5cf6' },
+  education: { label: 'Educación', color: '#3b82f6' },
+  other: { label: 'Otros Gastos', color: '#64748b' },
 }
 
 const frequencyLabels: Record<string, string> = {
@@ -110,7 +167,8 @@ export default function FinancesPage() {
     return Object.entries(map)
       .map(([catKey, data]) => ({
         category: catKey,
-        meta: expenseCategoryMeta[catKey] || { label: catKey, emoji: '📦', color: '#64748b' },
+        label: expenseCategoryLabels[catKey]?.label || catKey,
+        color: expenseCategoryLabels[catKey]?.color || '#64748b',
         total: data.total,
         percentage: summary.totalExpenses > 0 ? (data.total / summary.totalExpenses) * 100 : 0,
         count: data.count,
@@ -277,10 +335,10 @@ export default function FinancesPage() {
       {/* Tab Navigation */}
       <div className="flex gap-2 border-b border-border pb-1 overflow-x-auto scrollbar-none">
         {[
-          { id: 'overview', label: 'Resumen Global', emoji: '📊' },
-          { id: 'incomes', label: `Ingresos (${incomes.length})`, emoji: '💰' },
-          { id: 'expenses', label: `Gastos Fijos (${expenses.length})`, emoji: '🧾' },
-          { id: 'categories', label: 'Desglose por Categoría', emoji: '🏷️' },
+          { id: 'overview', label: 'Resumen Global', icon: <BarChart3 size={16} /> },
+          { id: 'incomes', label: `Ingresos (${incomes.length})`, icon: <ArrowDownLeft size={16} className="text-emerald-400" /> },
+          { id: 'expenses', label: `Gastos Fijos (${expenses.length})`, icon: <Receipt size={16} className="text-rose-400" /> },
+          { id: 'categories', label: 'Desglose por Categoría', icon: <Tags size={16} /> },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -291,7 +349,7 @@ export default function FinancesPage() {
                 : 'text-text-muted hover:text-text-primary hover:bg-bg-card-hover'
             }`}
           >
-            <span>{tab.emoji}</span>
+            <span>{tab.icon}</span>
             <span>{tab.label}</span>
           </button>
         ))}
@@ -304,50 +362,52 @@ export default function FinancesPage() {
           <div className="glass-card p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-text-primary flex items-center gap-2">
-                <span>💰</span> Ingresos ({incomes.length})
+                <ArrowDownLeft size={18} className="text-emerald-400" />
+                Ingresos ({incomes.length})
               </h3>
               <button
                 onClick={() => setShowCreateIncome(true)}
-                className="text-xs font-semibold text-success hover:underline"
+                className="text-xs font-semibold text-success hover:underline flex items-center gap-1"
               >
-                + Agregar
+                <Plus size={12} /> Agregar
               </button>
             </div>
             {incomes.length > 0 ? (
               <div className="space-y-2.5">
-                {incomes.map((item) => {
-                  const meta = incomeCategoryMeta[item.category] || { label: item.category, emoji: '💵' }
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => setEditingIncome(item)}
-                      className="p-3 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className="text-xl shrink-0">{meta.emoji}</span>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-text-primary truncate">
-                            {item.title}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-text-muted">
-                            <span>{frequencyLabels[item.frequency] || item.frequency}</span>
-                            {item.users?.name && (
-                              <>
-                                <span>•</span>
-                                <span>{item.users.name}</span>
-                              </>
-                            )}
-                          </div>
+                {incomes.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => setEditingIncome(item)}
+                    className="p-3 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                        {getIncomeIcon(item.category, 18)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-text-primary truncate group-hover:text-accent-primary transition-colors">
+                          {item.title}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-text-muted">
+                          <span>{incomeCategoryLabels[item.category] || item.category}</span>
+                          <span>•</span>
+                          <span>{frequencyLabels[item.frequency] || item.frequency}</span>
+                          {item.users?.name && (
+                            <>
+                              <span>•</span>
+                              <span>{item.users.name}</span>
+                            </>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-success">
-                          +${formatCurrency(item.amount)}
-                        </p>
-                      </div>
                     </div>
-                  )
-                })}
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-bold text-success">
+                        +${formatCurrency(item.amount)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="py-8 text-center text-text-muted text-sm space-y-2">
@@ -363,56 +423,56 @@ export default function FinancesPage() {
           <div className="glass-card p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-text-primary flex items-center gap-2">
-                <span>🧾</span> Gastos Fijos ({expenses.length})
+                <Receipt size={18} className="text-rose-400" />
+                Gastos Fijos ({expenses.length})
               </h3>
               <button
                 onClick={() => setShowCreateExpense(true)}
-                className="text-xs font-semibold text-danger hover:underline"
+                className="text-xs font-semibold text-danger hover:underline flex items-center gap-1"
               >
-                + Agregar
+                <Plus size={12} /> Agregar
               </button>
             </div>
             {expenses.length > 0 ? (
               <div className="space-y-2.5">
-                {expenses.map((item) => {
-                  const meta = expenseCategoryMeta[item.category] || { label: item.category, emoji: '📦', color: '#64748b' }
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => setEditingExpense(item)}
-                      className="p-3 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span className="text-xl shrink-0">{meta.emoji}</span>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-text-primary truncate">
-                            {item.title}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-text-muted">
-                            <span>{meta.label}</span>
-                            {item.due_day && (
-                              <>
-                                <span>•</span>
-                                <span>Día {item.due_day}</span>
-                              </>
-                            )}
-                            {item.users?.name && (
-                              <>
-                                <span>•</span>
-                                <span>{item.users.name}</span>
-                              </>
-                            )}
-                          </div>
+                {expenses.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => setEditingExpense(item)}
+                    className="p-3 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                        {getExpenseIcon(item.category, 18)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-text-primary truncate group-hover:text-accent-primary transition-colors">
+                          {item.title}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-text-muted">
+                          <span>{expenseCategoryLabels[item.category]?.label || item.category}</span>
+                          {item.due_day && (
+                            <>
+                              <span>•</span>
+                              <span>Día {item.due_day}</span>
+                            </>
+                          )}
+                          {item.users?.name && (
+                            <>
+                              <span>•</span>
+                              <span>{item.users.name}</span>
+                            </>
+                          )}
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-danger">
-                          -${formatCurrency(item.amount)}
-                        </p>
-                      </div>
                     </div>
-                  )
-                })}
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-bold text-danger">
+                        -${formatCurrency(item.amount)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="py-8 text-center text-text-muted text-sm space-y-2">
@@ -430,48 +490,50 @@ export default function FinancesPage() {
       {activeTab === 'incomes' && (
         <div className="glass-card p-6 space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="font-bold text-text-primary text-lg">
+            <h3 className="font-bold text-text-primary text-lg flex items-center gap-2">
+              <ArrowDownLeft size={20} className="text-emerald-400" />
               Lista Completa de Ingresos
             </h3>
-            <Button size="sm" variant="secondary" onClick={() => setShowCreateIncome(true)}>
-              + Nuevo Ingreso
+            <Button size="sm" variant="secondary" onClick={() => setShowCreateIncome(true)} icon={<Plus size={14} />}>
+              Nuevo Ingreso
             </Button>
           </div>
           {incomes.length > 0 ? (
             <div className="divide-y divide-border">
-              {incomes.map((item) => {
-                const meta = incomeCategoryMeta[item.category] || { label: item.category, emoji: '💵' }
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => setEditingIncome(item)}
-                    className="py-3.5 flex items-center justify-between hover:bg-bg-card-hover px-3 rounded-[var(--radius-md)] cursor-pointer transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{meta.emoji}</span>
-                      <div>
-                        <p className="font-semibold text-text-primary">{item.title}</p>
-                        <p className="text-xs text-text-muted">
-                          {meta.label} • {frequencyLabels[item.frequency] || item.frequency}
-                          {item.users?.name ? ` • Aportado por ${item.users.name}` : ''}
-                        </p>
-                      </div>
+              {incomes.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => setEditingIncome(item)}
+                  className="py-3.5 flex items-center justify-between hover:bg-bg-card-hover px-3 rounded-[var(--radius-md)] cursor-pointer transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                      {getIncomeIcon(item.category, 20)}
                     </div>
-                    <div className="text-right">
-                      <p className="text-base font-bold text-success">
-                        +${formatCurrency(item.amount)}
-                      </p>
-                      <p className="text-[11px] text-text-muted">
-                        ${formatCurrency(normalizeToMonthly(item.amount, item.frequency))}/mes
+                    <div>
+                      <p className="font-semibold text-text-primary">{item.title}</p>
+                      <p className="text-xs text-text-muted">
+                        {incomeCategoryLabels[item.category] || item.category} • {frequencyLabels[item.frequency] || item.frequency}
+                        {item.users?.name ? ` • Aportado por ${item.users.name}` : ''}
                       </p>
                     </div>
                   </div>
-                )
-              })}
+                  <div className="text-right">
+                    <p className="text-base font-bold text-success">
+                      +${formatCurrency(item.amount)}
+                    </p>
+                    <p className="text-[11px] text-text-muted">
+                      ${formatCurrency(normalizeToMonthly(item.amount, item.frequency))}/mes
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="py-12 text-center text-text-muted space-y-3">
-              <span className="text-4xl">💰</span>
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 mx-auto flex items-center justify-center">
+                <Wallet size={24} />
+              </div>
               <p className="font-semibold text-text-primary">Sin ingresos registrados</p>
               <p className="text-sm max-w-sm mx-auto">
                 Registra los sueldos o ingresos del hogar para calcular automáticamente el balance disponible.
@@ -486,49 +548,51 @@ export default function FinancesPage() {
       {activeTab === 'expenses' && (
         <div className="glass-card p-6 space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="font-bold text-text-primary text-lg">
+            <h3 className="font-bold text-text-primary text-lg flex items-center gap-2">
+              <Receipt size={20} className="text-rose-400" />
               Lista Completa de Gastos Fijos
             </h3>
-            <Button size="sm" onClick={() => setShowCreateExpense(true)}>
-              + Nuevo Gasto
+            <Button size="sm" onClick={() => setShowCreateExpense(true)} icon={<Plus size={14} />}>
+              Nuevo Gasto
             </Button>
           </div>
           {expenses.length > 0 ? (
             <div className="divide-y divide-border">
-              {expenses.map((item) => {
-                const meta = expenseCategoryMeta[item.category] || { label: item.category, emoji: '📦', color: '#64748b' }
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => setEditingExpense(item)}
-                    className="py-3.5 flex items-center justify-between hover:bg-bg-card-hover px-3 rounded-[var(--radius-md)] cursor-pointer transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{meta.emoji}</span>
-                      <div>
-                        <p className="font-semibold text-text-primary">{item.title}</p>
-                        <p className="text-xs text-text-muted">
-                          {meta.label} • {frequencyLabels[item.frequency] || item.frequency}
-                          {item.due_day ? ` • Vence el día ${item.due_day}` : ''}
-                          {item.users?.name ? ` • Responsable: ${item.users.name}` : ''}
-                        </p>
-                      </div>
+              {expenses.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => setEditingExpense(item)}
+                  className="py-3.5 flex items-center justify-between hover:bg-bg-card-hover px-3 rounded-[var(--radius-md)] cursor-pointer transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                      {getExpenseIcon(item.category, 20)}
                     </div>
-                    <div className="text-right">
-                      <p className="text-base font-bold text-danger">
-                        -${formatCurrency(item.amount)}
-                      </p>
-                      <p className="text-[11px] text-text-muted">
-                        ${formatCurrency(normalizeToMonthly(item.amount, item.frequency))}/mes
+                    <div>
+                      <p className="font-semibold text-text-primary">{item.title}</p>
+                      <p className="text-xs text-text-muted">
+                        {expenseCategoryLabels[item.category]?.label || item.category} • {frequencyLabels[item.frequency] || item.frequency}
+                        {item.due_day ? ` • Vence el día ${item.due_day}` : ''}
+                        {item.users?.name ? ` • Responsable: ${item.users.name}` : ''}
                       </p>
                     </div>
                   </div>
-                )
-              })}
+                  <div className="text-right">
+                    <p className="text-base font-bold text-danger">
+                      -${formatCurrency(item.amount)}
+                    </p>
+                    <p className="text-[11px] text-text-muted">
+                      ${formatCurrency(normalizeToMonthly(item.amount, item.frequency))}/mes
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="py-12 text-center text-text-muted space-y-3">
-              <span className="text-4xl">🧾</span>
+              <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 mx-auto flex items-center justify-center">
+                <Receipt size={24} />
+              </div>
               <p className="font-semibold text-text-primary">Sin gastos registrados</p>
               <p className="text-sm max-w-sm mx-auto">
                 Guarda tus gastos mensuales (renta, servicios, despensa) para ver la resta automática de tus ingresos.
@@ -543,7 +607,8 @@ export default function FinancesPage() {
       {activeTab === 'categories' && (
         <div className="glass-card p-6 space-y-6">
           <div>
-            <h3 className="font-bold text-text-primary text-lg">
+            <h3 className="font-bold text-text-primary text-lg flex items-center gap-2">
+              <Tags size={20} className="text-accent-primary" />
               Distribución de Gastos por Categoría
             </h3>
             <p className="text-xs text-text-muted mt-0.5">
@@ -556,10 +621,12 @@ export default function FinancesPage() {
               {expenseCategoryBreakdown.map((item) => (
                 <div key={item.category} className="space-y-1.5">
                   <div className="flex justify-between items-center text-sm">
-                    <div className="flex items-center gap-2">
-                      <span>{item.meta.emoji}</span>
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-bg-surface border border-border flex items-center justify-center shrink-0">
+                        {getExpenseIcon(item.category, 15)}
+                      </div>
                       <span className="font-semibold text-text-primary">
-                        {item.meta.label}
+                        {item.label}
                       </span>
                       <span className="text-xs text-text-muted">
                         ({item.count} {item.count === 1 ? 'gasto' : 'gastos'})
@@ -579,7 +646,7 @@ export default function FinancesPage() {
                       className="h-full rounded-full transition-all duration-700"
                       style={{
                         width: `${item.percentage}%`,
-                        backgroundColor: item.meta.color || 'var(--accent-primary)',
+                        backgroundColor: item.color || 'var(--accent-primary)',
                       }}
                     />
                   </div>

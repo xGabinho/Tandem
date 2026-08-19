@@ -8,7 +8,13 @@ import GoalCard from '@/components/goals/GoalCard'
 import CreateGoalModal from '@/components/goals/CreateGoalModal'
 import { GoalCardSkeleton } from '@/components/ui/SkeletonLoader'
 import Button from '@/components/ui/Button'
-import { Plus } from 'lucide-react'
+import {
+  Plus,
+  Layers,
+  PiggyBank,
+  Search,
+  Sparkles,
+} from 'lucide-react'
 
 type GoalRow = Database['public']['Tables']['goals']['Row']
 type ContributionRow = Database['public']['Tables']['contributions']['Row']
@@ -60,11 +66,11 @@ export default function GoalsPage() {
     return true
   })
 
-  const typeFilters: { id: FilterType; label: string; emoji: string }[] = [
-    { id: 'all', label: 'Todas', emoji: '📋' },
-    { id: 'savings', label: 'Ahorro', emoji: '💰' },
-    { id: 'quoting', label: 'Cotización', emoji: '🔍' },
-    { id: 'experience', label: 'Experiencia', emoji: '⭐' },
+  const typeFilters: { id: FilterType; label: string; icon: React.ReactNode }[] = [
+    { id: 'all', label: 'Todas', icon: <Layers size={14} /> },
+    { id: 'savings', label: 'Ahorro', icon: <PiggyBank size={14} className="text-emerald-400" /> },
+    { id: 'quoting', label: 'Cotización', icon: <Search size={14} className="text-blue-400" /> },
+    { id: 'experience', label: 'Experiencia', icon: <Sparkles size={14} className="text-amber-400" /> },
   ]
 
   return (
@@ -94,7 +100,7 @@ export default function GoalsPage() {
             key={f.id}
             onClick={() => setFilterType(f.id)}
             className={`
-              px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
+              px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2
               ${
                 filterType === f.id
                   ? 'bg-accent-primary-soft text-accent-primary border border-accent-primary/20'
@@ -102,7 +108,8 @@ export default function GoalsPage() {
               }
             `}
           >
-            {f.emoji} {f.label}
+            <span>{f.icon}</span>
+            <span>{f.label}</span>
           </button>
         ))}
       </div>

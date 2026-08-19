@@ -9,6 +9,7 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import ImageUploader from '@/components/goals/ImageUploader'
+import { PiggyBank, Search, Sparkles, ArrowLeft } from 'lucide-react'
 
 type GoalInsert = Database['public']['Tables']['goals']['Insert']
 type GoalType = 'savings' | 'quoting' | 'experience'
@@ -19,10 +20,10 @@ interface CreateGoalModalProps {
   onCreated: () => void
 }
 
-const types: { id: GoalType; label: string; emoji: string; desc: string }[] = [
-  { id: 'savings', label: 'Ahorro', emoji: '💰', desc: 'Meta financiera con monto y fecha objetivo' },
-  { id: 'quoting', label: 'Cotización', emoji: '🔍', desc: 'Investigación de precios con enlaces de referencia' },
-  { id: 'experience', label: 'Experiencia', emoji: '⭐', desc: 'Hitos o actividades sin costo fijo' },
+const types = [
+  { id: 'savings' as const, label: 'Ahorro', icon: <PiggyBank size={24} className="text-emerald-400" />, desc: 'Meta financiera con monto y fecha objetivo' },
+  { id: 'quoting' as const, label: 'Cotización', icon: <Search size={24} className="text-blue-400" />, desc: 'Investigación de precios con enlaces de referencia' },
+  { id: 'experience' as const, label: 'Experiencia', icon: <Sparkles size={24} className="text-amber-400" />, desc: 'Hitos o actividades sin costo fijo' },
 ]
 
 export default function CreateGoalModal({
@@ -130,7 +131,7 @@ export default function CreateGoalModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={step === 'type' ? 'Nueva Meta' : `Nueva Meta — ${types.find((t) => t.id === selectedType)?.emoji} ${types.find((t) => t.id === selectedType)?.label}`}
+      title={step === 'type' ? 'Nueva Meta' : `Nueva Meta — ${types.find((t) => t.id === selectedType)?.label}`}
       subtitle={step === 'type' ? '¿Qué tipo de meta quieres crear?' : 'Completa los detalles'}
       size="lg"
     >
@@ -146,8 +147,10 @@ export default function CreateGoalModal({
               }}
               className="w-full p-4 rounded-[var(--radius-lg)] bg-bg-surface border border-border hover:border-border-hover hover:bg-bg-card-hover transition-all text-left group"
             >
-              <div className="flex items-start gap-3">
-                <span className="text-2xl">{type.emoji}</span>
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-full bg-bg-card flex items-center justify-center shrink-0 border border-border">
+                  {type.icon}
+                </div>
                 <div>
                   <p className="font-semibold text-text-primary group-hover:text-accent-primary transition-colors">
                     {type.label}
@@ -238,7 +241,7 @@ export default function CreateGoalModal({
                     }
                   `}
                 >
-                  {p === 'high' ? '🔴 Alta' : p === 'medium' ? '🟡 Media' : '🟢 Baja'}
+                  {p === 'high' ? 'Alta' : p === 'medium' ? 'Media' : 'Baja'}
                 </button>
               ))}
             </div>
@@ -254,8 +257,9 @@ export default function CreateGoalModal({
               variant="ghost"
               onClick={() => setStep('type')}
               className="flex-1"
+              icon={<ArrowLeft size={16} />}
             >
-              ← Atrás
+              Atrás
             </Button>
             <Button type="submit" loading={loading} className="flex-1">
               Crear Meta

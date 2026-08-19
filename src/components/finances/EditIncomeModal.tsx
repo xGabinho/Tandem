@@ -7,6 +7,13 @@ import { IncomeRow, UserRow } from '@/types/supabase'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import {
+  Briefcase,
+  Laptop,
+  TrendingUp,
+  Store,
+  Sparkles,
+} from 'lucide-react'
 
 interface EditIncomeModalProps {
   income: IncomeRow | null
@@ -16,11 +23,11 @@ interface EditIncomeModalProps {
 }
 
 const categories = [
-  { id: 'salary', label: 'Salario / Nómina', emoji: '💼' },
-  { id: 'freelance', label: 'Freelance / Honorarios', emoji: '💻' },
-  { id: 'investments', label: 'Inversiones / Rendimientos', emoji: '📈' },
-  { id: 'business', label: 'Negocio / Emprendimiento', emoji: '🏪' },
-  { id: 'other', label: 'Otros Ingresos', emoji: '✨' },
+  { id: 'salary', label: 'Salario / Nómina', icon: <Briefcase size={16} className="text-emerald-400" /> },
+  { id: 'freelance', label: 'Freelance / Honorarios', icon: <Laptop size={16} className="text-blue-400" /> },
+  { id: 'investments', label: 'Inversiones / Rendimientos', icon: <TrendingUp size={16} className="text-purple-400" /> },
+  { id: 'business', label: 'Negocio / Emprendimiento', icon: <Store size={16} className="text-amber-400" /> },
+  { id: 'other', label: 'Otros Ingresos', icon: <Sparkles size={16} className="text-emerald-300" /> },
 ] as const
 
 const frequencies = [
@@ -177,13 +184,15 @@ export default function EditIncomeModal({
                 key={cat.id}
                 type="button"
                 onClick={() => setCategory(cat.id)}
-                className={`flex items-center gap-2 p-2.5 rounded-[var(--radius-md)] text-xs font-medium border transition-all text-left ${
+                className={`flex items-center gap-2.5 p-2.5 rounded-[var(--radius-md)] text-xs font-medium border transition-all text-left ${
                   category === cat.id
                     ? 'bg-accent-primary-soft border-accent-primary/40 text-accent-primary font-semibold'
                     : 'bg-bg-surface border-border text-text-muted hover:border-border-hover hover:text-text-primary'
                 }`}
               >
-                <span className="text-base">{cat.emoji}</span>
+                <div className="w-6 h-6 rounded-full bg-bg-card flex items-center justify-center shrink-0">
+                  {cat.icon}
+                </div>
                 <span className="truncate">{cat.label}</span>
               </button>
             ))}

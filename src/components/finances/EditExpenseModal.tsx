@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
+import React, { useState, FormEvent, useEffect } from 'react'
 import { updateExpense, deleteExpense } from '@/lib/api/finances'
 import { getWorkspaceUsers } from '@/lib/api/workspaces'
 import { ExpenseRow, UserRow } from '@/types/supabase'
@@ -201,7 +201,9 @@ export default function EditExpenseModal({
                     : 'bg-bg-surface border-border text-text-muted hover:border-border-hover hover:text-text-primary'
                 }`}
               >
-                <span className="text-base">{cat.emoji}</span>
+                <div className="w-5 h-5 rounded-full bg-bg-card flex items-center justify-center shrink-0">
+                  {cat.icon}
+                </div>
                 <span className="truncate">{cat.label}</span>
               </button>
             ))}

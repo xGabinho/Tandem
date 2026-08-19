@@ -44,15 +44,15 @@ export default function JoinCodeDisplay({ code }: JoinCodeDisplayProps) {
       </p>
 
       {/* Code Display */}
-      <div className="relative">
+      <div className="relative flex justify-center">
         <div
-          className="inline-flex items-center gap-0.5 px-8 py-4 rounded-[var(--radius-xl)] bg-bg-surface border border-border text-3xl font-mono font-bold tracking-[0.3em] text-accent-primary select-all cursor-pointer"
+          className="inline-flex items-center justify-center flex-wrap gap-0.5 max-w-full px-4 py-3 sm:px-8 sm:py-4 rounded-[var(--radius-xl)] bg-bg-surface border border-border text-2xl sm:text-3xl font-mono font-bold tracking-[0.18em] sm:tracking-[0.25em] text-accent-primary select-all cursor-pointer shadow-inner"
           onClick={handleCopy}
         >
           {code.split('').map((char, i) => (
             <span
               key={i}
-              className={char === '-' ? 'text-text-muted mx-1' : ''}
+              className={char === '-' ? 'text-text-muted mx-0.5 sm:mx-1' : ''}
               style={{
                 animationDelay: `${i * 0.05}s`,
               }}

@@ -169,7 +169,7 @@ export default function OnboardingPage() {
 
         {/* Create Step — Show generated code */}
         {step === 'create' && (
-          <div className="glass-card p-8">
+          <div className="glass-card p-6 sm:p-8">
             <JoinCodeDisplay code={joinCode} />
             <div className="mt-6">
               <Button
@@ -179,12 +179,6 @@ export default function OnboardingPage() {
               >
                 Ir al Dashboard
               </Button>
-              <button
-                onClick={() => setStep('choose')}
-                className="w-full mt-3 text-sm text-text-muted hover:text-text-primary transition-colors text-center"
-              >
-                ← Volver
-              </button>
             </div>
           </div>
         )}

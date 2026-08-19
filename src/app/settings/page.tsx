@@ -51,10 +51,20 @@ export default function SettingsPage() {
   const [joinCode, setJoinCode] = useState<string | null>(null)
   const [loadingWorkspace, setLoadingWorkspace] = useState(false)
 
-  // Check notification permission on mount
-  useEffect(() => {
+  // Check notification permission on mount & window focus
+  const checkPermission = () => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setNotifPermission(Notification.permission)
+    }
+  }
+
+  useEffect(() => {
+    checkPermission()
+    window.addEventListener('focus', checkPermission)
+    document.addEventListener('visibilitychange', checkPermission)
+    return () => {
+      window.removeEventListener('focus', checkPermission)
+      document.removeEventListener('visibilitychange', checkPermission)
     }
   }, [])
 
@@ -213,15 +223,7 @@ export default function SettingsPage() {
         </p>
 
         <div className="flex flex-wrap gap-2.5 pt-1">
-          {notifPermission !== 'granted' ? (
-            <Button
-              size="sm"
-              onClick={handleEnableNotifications}
-              icon={<BellRing size={14} />}
-            >
-              Activar Notificaciones en este Dispositivo
-            </Button>
-          ) : (
+          {notifPermission === 'granted' ? (
             <Button
               size="sm"
               variant="secondary"
@@ -230,6 +232,36 @@ export default function SettingsPage() {
               icon={<Bell size={14} />}
             >
               {notifSent ? '✓ Notificación enviada' : 'Enviar notificación de prueba'}
+            </Button>
+          ) : notifPermission === 'denied' ? (
+            <div className="w-full space-y-2.5">
+              <div className="p-3 rounded-[var(--radius-lg)] bg-danger-soft/40 border border-danger/30 text-xs text-text-secondary leading-relaxed">
+                <p className="font-bold text-danger mb-1 flex items-center gap-1.5">
+                  <AlertCircle size={14} /> Permiso bloqueado en el navegador
+                </p>
+                <p>
+                  1. Toca el candado o icono de permisos a la izquierda de la URL en tu navegador (Chrome/Safari).
+                </p>
+                <p>
+                  2. Cambia <strong>Notificaciones</strong> a <strong>Permitir</strong>.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={checkPermission}
+                icon={<BellRing size={14} />}
+              >
+                Reverificar Estado de Permisos
+              </Button>
+            </div>
+          ) : (
+            <Button
+              size="sm"
+              onClick={handleEnableNotifications}
+              icon={<BellRing size={14} />}
+            >
+              Activar Notificaciones en este Dispositivo
             </Button>
           )}
         </div>

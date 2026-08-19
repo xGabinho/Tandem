@@ -109,12 +109,12 @@ export default function SettingsPage() {
     setSavingProfile(false)
   }
 
-  const handleEnableNotifications = async () => {
+  const handleRecheckPermission = async () => {
     const perm = await requestNotificationPermission()
     setNotifPermission(perm)
     if (perm === 'granted') {
-      sendMobileNotification('¡Notificaciones Activadas! 🔔', {
-        body: 'Recibirás avisos de abonos de tu pareja y recordatorios de gastos.',
+      sendMobileNotification('¡Permiso Concedido! 🔔', {
+        body: 'Las notificaciones en tu celular ya están listas.',
         data: { url: '/settings' },
       })
     }
@@ -234,31 +234,33 @@ export default function SettingsPage() {
               {notifSent ? '✓ Notificación enviada' : 'Enviar notificación de prueba'}
             </Button>
           ) : notifPermission === 'denied' ? (
-            <div className="w-full space-y-2.5">
-              <div className="p-3 rounded-[var(--radius-lg)] bg-danger-soft/40 border border-danger/30 text-xs text-text-secondary leading-relaxed">
-                <p className="font-bold text-danger mb-1 flex items-center gap-1.5">
-                  <AlertCircle size={14} /> Permiso bloqueado en el navegador
+            <div className="w-full space-y-3">
+              <div className="p-3.5 rounded-[var(--radius-lg)] bg-danger-soft/40 border border-danger/30 text-xs text-text-secondary leading-relaxed space-y-1.5">
+                <p className="font-bold text-danger flex items-center gap-1.5">
+                  <AlertCircle size={14} /> Permiso bloqueado en este dispositivo
                 </p>
-                <p>
-                  1. Toca el candado o icono de permisos a la izquierda de la URL en tu navegador (Chrome/Safari).
+                <p className="text-text-primary font-medium">
+                  Si estás usando la app instalada en la pantalla de inicio:
                 </p>
-                <p>
-                  2. Cambia <strong>Notificaciones</strong> a <strong>Permitir</strong>.
-                </p>
+                <ol className="list-decimal list-inside space-y-0.5 text-text-muted">
+                  <li>Ve a los <strong>Ajustes del teléfono ➔ Aplicaciones ➔ Tándem</strong>.</li>
+                  <li>Entra en <strong>Notificaciones</strong> y activa <strong>Permitir</strong>.</li>
+                  <li>Cierra completamente la app (deslízala desde aplicaciones recientes) y vuelve a abrirla.</li>
+                </ol>
               </div>
               <Button
                 size="sm"
                 variant="secondary"
-                onClick={checkPermission}
+                onClick={handleRecheckPermission}
                 icon={<BellRing size={14} />}
               >
-                Reverificar Estado de Permisos
+                Volver a Solicitar / Reverificar Permisos
               </Button>
             </div>
           ) : (
             <Button
               size="sm"
-              onClick={handleEnableNotifications}
+              onClick={handleRecheckPermission}
               icon={<BellRing size={14} />}
             >
               Activar Notificaciones en este Dispositivo

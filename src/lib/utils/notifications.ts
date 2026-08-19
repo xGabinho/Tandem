@@ -51,8 +51,8 @@ export async function sendMobileNotification(
 
   const notificationOptions = {
     body: options?.body || 'Nueva actualización en Tándem',
-    icon: options?.icon || '/favicon.ico',
-    badge: options?.badge || '/favicon.ico',
+    icon: options?.icon || '/icons/icon-192.png',
+    badge: options?.badge || '/icons/icon-192.png',
     tag: options?.tag || 'tandem-notification',
     data: options?.data || { url: '/' },
   }

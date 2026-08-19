@@ -8,6 +8,7 @@ import GoalCard from '@/components/goals/GoalCard'
 import CreateGoalModal from '@/components/goals/CreateGoalModal'
 import { GoalCardSkeleton } from '@/components/ui/SkeletonLoader'
 import Button from '@/components/ui/Button'
+import { Plus } from 'lucide-react'
 
 type GoalRow = Database['public']['Tables']['goals']['Row']
 type ContributionRow = Database['public']['Tables']['contributions']['Row']
@@ -80,12 +81,7 @@ export default function GoalsPage() {
         </div>
         <Button
           onClick={() => setShowCreateModal(true)}
-          icon={
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-          }
+          icon={<Plus size={16} />}
         >
           Nueva Meta
         </Button>

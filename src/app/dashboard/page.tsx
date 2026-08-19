@@ -14,6 +14,13 @@ import {
 import ProgressRing from '@/components/dashboard/ProgressRing'
 import QuickStats from '@/components/dashboard/QuickStats'
 import { DashboardStatSkeleton } from '@/components/ui/SkeletonLoader'
+import {
+  PiggyBank,
+  Target,
+  Clock,
+  CheckCircle2,
+  Sparkles,
+} from 'lucide-react'
 
 type GoalRow = Database['public']['Tables']['goals']['Row']
 type ContributionRow = Database['public']['Tables']['contributions']['Row']
@@ -58,52 +65,26 @@ export default function DashboardPage() {
       label: 'Total Ahorrado',
       value: progress.totalSaved,
       prefix: '$',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M19 5c-1.5 0-2.8 1.4-3 2-3.5-1.5-11-.3-11 5 0 1.8 0 3 2 4.5V20h4v-2h3v2h4v-4c1-0.5 1.7-1 2-2h2v-4h-2c0-1-.5-1.5-1-2" />
-          <path d="M2 9v1c0 1.1.9 2 2 2h1" />
-          <path d="M16 11h0.01" />
-        </svg>
-      ),
+      icon: <PiggyBank size={20} />,
       color: 'var(--success)',
     },
     {
       label: 'Objetivo Total',
       value: progress.totalTarget,
       prefix: '$',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 13V2l8 4-8 4" />
-          <path d="M20.55 10.23A9 9 0 1 1 8 4.94" />
-          <path d="M8 10a5 5 0 1 0 8.9 2.02" />
-        </svg>
-      ),
+      icon: <Target size={20} />,
       color: 'var(--accent-primary)',
     },
     {
       label: 'Metas Activas',
       value: progress.activeGoals,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-          <polyline points="22 4 12 14.01 9 11.01" />
-        </svg>
-      ),
+      icon: <Clock size={20} />,
       color: 'var(--warning)',
     },
     {
       label: 'Completadas',
       value: progress.completedGoals,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-          <path d="M4 22h16" />
-          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-        </svg>
-      ),
+      icon: <CheckCircle2 size={20} />,
       color: 'var(--info)',
     },
   ]

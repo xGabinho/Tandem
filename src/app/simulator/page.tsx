@@ -15,6 +15,11 @@ import {
 import { Database, IncomeRow, ExpenseRow } from '@/types/supabase'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import {
+  PiggyBank,
+  Calculator,
+  Sparkles,
+} from 'lucide-react'
 
 type GoalRow = Database['public']['Tables']['goals']['Row']
 type ContributionRow = Database['public']['Tables']['contributions']['Row']
@@ -112,11 +117,8 @@ export default function SimulatorPage() {
         <div className="glass-card p-6 space-y-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-[var(--radius-md)] bg-success-soft flex items-center justify-center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="16" height="12" x="4" y="6" rx="2" />
-                  <path d="M2 10h20" />
-                </svg>
+              <div className="w-10 h-10 rounded-[var(--radius-md)] bg-success-soft flex items-center justify-center text-success">
+                <PiggyBank size={20} />
               </div>
               <div>
                 <h3 className="font-bold text-text-primary">
@@ -141,7 +143,7 @@ export default function SimulatorPage() {
           {hasLoadedSavedData && (
             <div className="p-2.5 rounded-[var(--radius-md)] bg-accent-primary-soft border border-accent-primary/20 flex items-center justify-between text-xs">
               <span className="text-accent-primary font-medium flex items-center gap-1.5">
-                <span>✨</span> Cargado de tus ingresos y gastos guardados
+                <Sparkles size={14} /> Cargado de tus ingresos y gastos guardados
               </span>
               <Link href="/finances" className="text-accent-primary font-bold hover:underline">
                 Gestionar →
@@ -218,11 +220,8 @@ export default function SimulatorPage() {
         {/* ===== INSTALLMENT PROJECTION (RF-016) ===== */}
         <div className="glass-card p-6 space-y-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-accent-primary-soft flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 13V2l8 4-8 4" />
-                <path d="M20.55 10.23A9 9 0 1 1 8 4.94" />
-              </svg>
+            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-accent-primary-soft flex items-center justify-center text-accent-primary">
+              <Calculator size={20} />
             </div>
             <div>
               <h3 className="font-bold text-text-primary">

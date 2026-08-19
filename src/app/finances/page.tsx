@@ -14,6 +14,14 @@ import CreateIncomeModal from '@/components/finances/CreateIncomeModal'
 import EditIncomeModal from '@/components/finances/EditIncomeModal'
 import CreateExpenseModal from '@/components/finances/CreateExpenseModal'
 import EditExpenseModal from '@/components/finances/EditExpenseModal'
+import {
+  Plus,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  PiggyBank,
+  Wallet,
+} from 'lucide-react'
 
 type ActiveTab = 'overview' | 'incomes' | 'expenses' | 'categories'
 
@@ -127,24 +135,14 @@ export default function FinancesPage() {
             onClick={() => setShowCreateIncome(true)}
             variant="secondary"
             className="flex-1 sm:flex-initial !border-success/30 !text-success hover:!bg-success-soft"
-            icon={
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            }
+            icon={<Plus size={16} />}
           >
-            + Ingreso
+            Ingreso
           </Button>
           <Button
             onClick={() => setShowCreateExpense(true)}
             className="flex-1 sm:flex-initial"
-            icon={
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-            }
+            icon={<Plus size={16} />}
           >
             Gasto
           </Button>
@@ -160,10 +158,7 @@ export default function FinancesPage() {
               Ingresos Mensuales
             </span>
             <div className="w-8 h-8 rounded-full bg-success-soft flex items-center justify-center text-success">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="19" x2="12" y2="5" />
-                <polyline points="5 12 12 5 19 12" />
-              </svg>
+              <TrendingUp size={18} />
             </div>
           </div>
           <div>
@@ -183,10 +178,7 @@ export default function FinancesPage() {
               Gastos Mensuales
             </span>
             <div className="w-8 h-8 rounded-full bg-danger-soft flex items-center justify-center text-danger">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <polyline points="19 12 12 19 5 12" />
-              </svg>
+              <TrendingDown size={18} />
             </div>
           </div>
           <div>
@@ -210,9 +202,7 @@ export default function FinancesPage() {
                 summary.netBalance >= 0 ? 'bg-accent-primary-soft text-accent-primary' : 'bg-danger-soft text-danger'
               }`}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-              </svg>
+              <Wallet size={18} />
             </div>
           </div>
           <div>
@@ -236,10 +226,7 @@ export default function FinancesPage() {
               Capacidad de Ahorro
             </span>
             <div className="w-8 h-8 rounded-full bg-warning-soft flex items-center justify-center text-warning">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 13V2l8 4-8 4" />
-                <path d="M20.55 10.23A9 9 0 1 1 8 4.94" />
-              </svg>
+              <PiggyBank size={18} />
             </div>
           </div>
           <div>

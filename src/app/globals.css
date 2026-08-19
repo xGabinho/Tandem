@@ -1,0 +1,369 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+/* ============================================
+   TÁNDEM — DESIGN SYSTEM
+   Soft-UI / Glassmorphism con temas dinámicos
+   ============================================ */
+
+/* --- Tema: Minimal Dark (default) --- */
+:root,
+[data-theme="minimal_dark"] {
+  --bg-primary: #0f0f14;
+  --bg-secondary: #1a1a24;
+  --bg-card: #1e1e2a;
+  --bg-card-hover: #252536;
+  --bg-glass: rgba(30, 30, 42, 0.7);
+  --bg-input: #252536;
+  --bg-surface: #16161f;
+
+  --text-primary: #f0f0f5;
+  --text-secondary: #a0a0b8;
+  --text-muted: #6b6b85;
+  --text-inverse: #0f0f14;
+
+  --accent-primary: #818cf8;
+  --accent-primary-soft: rgba(129, 140, 248, 0.15);
+  --accent-primary-hover: #6366f1;
+  --accent-secondary: #a78bfa;
+  --accent-gradient: linear-gradient(135deg, #818cf8, #a78bfa);
+
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.15);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.15);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.15);
+  --info: #60a5fa;
+  --info-soft: rgba(96, 165, 250, 0.15);
+
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(129, 140, 248, 0.2);
+
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --radius-xl: 2rem;
+  --radius-full: 9999px;
+}
+
+/* --- Tema: Neon --- */
+[data-theme="neon"] {
+  --bg-primary: #0a0a12;
+  --bg-secondary: #121220;
+  --bg-card: #151528;
+  --bg-card-hover: #1c1c35;
+  --bg-glass: rgba(21, 21, 40, 0.75);
+  --bg-input: #1c1c35;
+  --bg-surface: #0e0e1a;
+
+  --text-primary: #e8e8ff;
+  --text-secondary: #9d9dcc;
+  --text-muted: #6060a0;
+  --text-inverse: #0a0a12;
+
+  --accent-primary: #00f0ff;
+  --accent-primary-soft: rgba(0, 240, 255, 0.12);
+  --accent-primary-hover: #00d4e0;
+  --accent-secondary: #ff006e;
+  --accent-gradient: linear-gradient(135deg, #00f0ff, #7b2ffc, #ff006e);
+
+  --success: #00ff88;
+  --success-soft: rgba(0, 255, 136, 0.12);
+  --warning: #ffe600;
+  --warning-soft: rgba(255, 230, 0, 0.12);
+  --danger: #ff3366;
+  --danger-soft: rgba(255, 51, 102, 0.12);
+  --info: #3399ff;
+  --info-soft: rgba(51, 153, 255, 0.12);
+
+  --border: rgba(0, 240, 255, 0.08);
+  --border-hover: rgba(0, 240, 255, 0.2);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 30px rgba(0, 240, 255, 0.25);
+}
+
+/* --- Tema: Floral --- */
+[data-theme="floral"] {
+  --bg-primary: #fef7f5;
+  --bg-secondary: #fff5f0;
+  --bg-card: #ffffff;
+  --bg-card-hover: #fff0ea;
+  --bg-glass: rgba(255, 255, 255, 0.75);
+  --bg-input: #fef0eb;
+  --bg-surface: #fdf4f0;
+
+  --text-primary: #3d2c2c;
+  --text-secondary: #7a6060;
+  --text-muted: #b09090;
+  --text-inverse: #ffffff;
+
+  --accent-primary: #e8788a;
+  --accent-primary-soft: rgba(232, 120, 138, 0.12);
+  --accent-primary-hover: #d9606e;
+  --accent-secondary: #c9a0dc;
+  --accent-gradient: linear-gradient(135deg, #e8788a, #c9a0dc, #8ec5c0);
+
+  --success: #7bc8a4;
+  --success-soft: rgba(123, 200, 164, 0.15);
+  --warning: #eabc6b;
+  --warning-soft: rgba(234, 188, 107, 0.15);
+  --danger: #d9606e;
+  --danger-soft: rgba(217, 96, 110, 0.15);
+  --info: #7ab0d4;
+  --info-soft: rgba(122, 176, 212, 0.15);
+
+  --border: rgba(61, 44, 44, 0.08);
+  --border-hover: rgba(61, 44, 44, 0.15);
+  --shadow-sm: 0 2px 8px rgba(232, 120, 138, 0.08);
+  --shadow-md: 0 4px 20px rgba(232, 120, 138, 0.1);
+  --shadow-lg: 0 8px 40px rgba(232, 120, 138, 0.12);
+  --shadow-glow: 0 0 20px rgba(232, 120, 138, 0.15);
+}
+
+/* --- Tema: Mint --- */
+[data-theme="mint"] {
+  --bg-primary: #f2faf7;
+  --bg-secondary: #edf8f4;
+  --bg-card: #ffffff;
+  --bg-card-hover: #e8f5f0;
+  --bg-glass: rgba(255, 255, 255, 0.75);
+  --bg-input: #e8f5f0;
+  --bg-surface: #eef9f5;
+
+  --text-primary: #1a3a30;
+  --text-secondary: #4a7a68;
+  --text-muted: #8ab0a0;
+  --text-inverse: #ffffff;
+
+  --accent-primary: #3ecfa5;
+  --accent-primary-soft: rgba(62, 207, 165, 0.12);
+  --accent-primary-hover: #2eb890;
+  --accent-secondary: #7ac0e0;
+  --accent-gradient: linear-gradient(135deg, #3ecfa5, #7ac0e0);
+
+  --success: #34d399;
+  --success-soft: rgba(52, 211, 153, 0.15);
+  --warning: #f0c060;
+  --warning-soft: rgba(240, 192, 96, 0.15);
+  --danger: #ef7070;
+  --danger-soft: rgba(239, 112, 112, 0.15);
+  --info: #60b0f0;
+  --info-soft: rgba(96, 176, 240, 0.15);
+
+  --border: rgba(26, 58, 48, 0.08);
+  --border-hover: rgba(26, 58, 48, 0.15);
+  --shadow-sm: 0 2px 8px rgba(62, 207, 165, 0.06);
+  --shadow-md: 0 4px 20px rgba(62, 207, 165, 0.08);
+  --shadow-lg: 0 8px 40px rgba(62, 207, 165, 0.1);
+  --shadow-glow: 0 0 20px rgba(62, 207, 165, 0.15);
+}
+
+/* ============================================
+   TAILWIND THEME INLINE TOKENS
+   ============================================ */
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-card: var(--bg-card);
+  --color-bg-card-hover: var(--bg-card-hover);
+  --color-bg-glass: var(--bg-glass);
+  --color-bg-input: var(--bg-input);
+  --color-bg-surface: var(--bg-surface);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-inverse: var(--text-inverse);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-primary-soft: var(--accent-primary-soft);
+  --color-accent-primary-hover: var(--accent-primary-hover);
+  --color-accent-secondary: var(--accent-secondary);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --color-border: var(--border);
+  --color-border-hover: var(--border-hover);
+
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary-soft) transparent;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================
+   GLASSMORPHISM UTILITIES
+   ============================================ */
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+}
+
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px var(--accent-primary-soft); }
+  50% { box-shadow: var(--shadow-glow); }
+}
+
+@keyframes progress-fill {
+  from { stroke-dashoffset: var(--circumference); }
+  to { stroke-dashoffset: var(--dash-offset); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Staggered entrance for child elements */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+
+/* Skeleton loader */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-input) 25%,
+    var(--bg-card-hover) 50%,
+    var(--bg-input) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+/* ============================================
+   SCROLLBAR (Webkit)
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-primary-soft);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
+}
+
+/* ============================================
+   AUTOFILL OVERRIDE (Evita fondo blanco en autofill de navegadores)
+   ============================================ */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-input) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+  border-radius: 0 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}

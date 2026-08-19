@@ -12,8 +12,8 @@ interface HealthScoreCardProps {
   expenses: ExpenseRow[]
 }
 
-const NEEDS_CATEGORIES = new Set(['housing', 'utilities', 'food', 'health', 'debt'])
-const WANTS_CATEGORIES = new Set(['subscriptions', 'transport', 'education', 'other'])
+const NEEDS_CATEGORIES = new Set(['housing', 'utilities', 'food', 'transport', 'education', 'health', 'debt'])
+const WANTS_CATEGORIES = new Set(['subscriptions', 'other'])
 
 export default function HealthScoreCard({
   totalIncome,
@@ -149,7 +149,7 @@ export default function HealthScoreCard({
             />
           </div>
           <p className="text-[11px] text-text-muted">
-            ${formatCurrency(analysis.needsTotal)}/mes (Renta, comida, servicios)
+            ${formatCurrency(analysis.needsTotal)}/mes (Renta, transporte/pasajes, servicios, comida)
           </p>
         </div>
 
@@ -171,7 +171,7 @@ export default function HealthScoreCard({
             />
           </div>
           <p className="text-[11px] text-text-muted">
-            ${formatCurrency(analysis.wantsTotal)}/mes (Streaming, salidas, otros)
+            ${formatCurrency(analysis.wantsTotal)}/mes (Streaming, ocio, otros)
           </p>
         </div>
 

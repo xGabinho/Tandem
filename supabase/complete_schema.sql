@@ -47,6 +47,32 @@ CREATE TABLE IF NOT EXISTS contributions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 5. Tabla de Ingresos
+CREATE TABLE IF NOT EXISTS incomes (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    title VARCHAR(150) NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL CHECK (amount > 0),
+    category VARCHAR(50) DEFAULT 'salary',
+    frequency VARCHAR(20) DEFAULT 'monthly' CHECK (frequency IN ('monthly', 'biweekly', 'one_time', 'weekly', 'yearly')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 6. Tabla de Gastos Mensuales / Fijos
+CREATE TABLE IF NOT EXISTS expenses (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE NOT NULL,
+    user_id REFERENCES users(id) ON DELETE SET NULL,
+    title VARCHAR(150) NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL CHECK (amount > 0),
+    category VARCHAR(50) DEFAULT 'housing',
+    due_day INTEGER CHECK (due_day >= 1 AND due_day <= 31),
+    frequency VARCHAR(20) DEFAULT 'monthly' CHECK (frequency IN ('monthly', 'biweekly', 'one_time', 'weekly', 'yearly')),
+    is_fixed BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ==============================================================================
 -- 5. TRIGGERS AUTOMÁTICOS
 -- ==============================================================================
@@ -114,6 +140,8 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contributions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE incomes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 
 -- Función segura SECURITY DEFINER para obtener el workspace_id sin disparar recursión en RLS
 CREATE OR REPLACE FUNCTION get_user_workspace_id() 
@@ -171,6 +199,24 @@ FOR INSERT WITH CHECK (user_id = auth.uid());
 DROP POLICY IF EXISTS "Eliminar propio abono" ON contributions;
 CREATE POLICY "Eliminar propio abono" ON contributions 
 FOR DELETE USING (user_id = auth.uid());
+
+-- Políticas para incomes
+DROP POLICY IF EXISTS "Ver ingresos del espacio" ON incomes;
+CREATE POLICY "Ver ingresos del espacio" ON incomes 
+FOR SELECT USING (workspace_id = get_user_workspace_id());
+
+DROP POLICY IF EXISTS "Gestionar ingresos del espacio" ON incomes;
+CREATE POLICY "Gestionar ingresos del espacio" ON incomes 
+FOR ALL USING (workspace_id = get_user_workspace_id());
+
+-- Políticas para expenses
+DROP POLICY IF EXISTS "Ver gastos del espacio" ON expenses;
+CREATE POLICY "Ver gastos del espacio" ON expenses 
+FOR SELECT USING (workspace_id = get_user_workspace_id());
+
+DROP POLICY IF EXISTS "Gestionar gastos del espacio" ON expenses;
+CREATE POLICY "Gestionar gastos del espacio" ON expenses 
+FOR ALL USING (workspace_id = get_user_workspace_id());
 
 -- ==============================================================================
 -- 7. BUCKET DE STORAGE PARA FOTOS DE METAS

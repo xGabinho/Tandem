@@ -1,11 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
-import { Database } from '@/types/supabase'
+import { getIncomes, getExpenses } from '@/lib/api/finances'
+import { Database, IncomeRow, ExpenseRow } from '@/types/supabase'
 import {
   calculateGlobalProgress,
+  calculateFinancialSummary,
   formatCurrency,
 } from '@/lib/utils/calculations'
 import ProgressRing from '@/components/dashboard/ProgressRing'
@@ -19,18 +22,24 @@ export default function DashboardPage() {
   const { profile } = useAuth()
   const [goals, setGoals] = useState<GoalRow[]>([])
   const [contributions, setContributions] = useState<ContributionRow[]>([])
+  const [incomes, setIncomes] = useState<IncomeRow[]>([])
+  const [expenses, setExpenses] = useState<ExpenseRow[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true)
-      const [goalsRes, contribRes] = await Promise.all([
+      const [goalsRes, contribRes, incomesData, expensesData] = await Promise.all([
         supabase.from('goals').select('*').order('created_at', { ascending: false }),
         supabase.from('contributions').select('*'),
+        getIncomes().catch(() => [] as IncomeRow[]),
+        getExpenses().catch(() => [] as ExpenseRow[]),
       ])
 
       if (goalsRes.data) setGoals(goalsRes.data)
       if (contribRes.data) setContributions(contribRes.data)
+      setIncomes(incomesData)
+      setExpenses(expensesData)
       setLoading(false)
     }
 
@@ -42,6 +51,7 @@ export default function DashboardPage() {
   }, [profile?.workspace_id])
 
   const progress = calculateGlobalProgress(goals, contributions)
+  const finances = calculateFinancialSummary(incomes, expenses)
 
   const stats = [
     {
@@ -167,6 +177,68 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+
+          {/* Monthly Cash Flow / Finances Card */}
+          {(incomes.length > 0 || expenses.length > 0) && (
+            <div className="glass-card p-5 md:p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                    <span>💵</span> Flujo Financiero Mensual
+                  </h3>
+                  <p className="text-xs text-text-muted">
+                    Ingresos guardados menos gastos fijos del hogar
+                  </p>
+                </div>
+                <Link
+                  href="/finances"
+                  className="text-xs font-semibold text-accent-primary hover:underline flex items-center gap-1"
+                >
+                  Ver detalle →
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 pt-1">
+                <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface border border-border">
+                  <p className="text-[11px] text-text-muted uppercase font-semibold">Ingresos</p>
+                  <p className="text-base md:text-lg font-bold text-success mt-0.5">
+                    +${formatCurrency(finances.totalIncome)}
+                  </p>
+                </div>
+                <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface border border-border">
+                  <p className="text-[11px] text-text-muted uppercase font-semibold">Gastos</p>
+                  <p className="text-base md:text-lg font-bold text-danger mt-0.5">
+                    -${formatCurrency(finances.totalExpenses)}
+                  </p>
+                </div>
+                <div className="p-3 rounded-[var(--radius-md)] bg-bg-surface border border-border">
+                  <p className="text-[11px] text-text-muted uppercase font-semibold">Disponible</p>
+                  <p
+                    className={`text-base md:text-lg font-bold mt-0.5 ${
+                      finances.netBalance >= 0 ? 'text-accent-primary' : 'text-danger'
+                    }`}
+                  >
+                    {finances.netBalance < 0 ? '-' : ''}${formatCurrency(Math.abs(finances.netBalance))}
+                  </p>
+                </div>
+              </div>
+
+              {finances.totalIncome > 0 && (
+                <div className="w-full h-2.5 bg-bg-surface rounded-full overflow-hidden flex border border-border">
+                  <div
+                    className="h-full bg-danger/80"
+                    style={{ width: `${Math.min(finances.expenseRate, 100)}%` }}
+                    title={`Gastos: ${finances.expenseRate}%`}
+                  />
+                  <div
+                    className="h-full bg-success/80"
+                    style={{ width: `${Math.min(finances.savingsRate, 100)}%` }}
+                    title={`Disponible para ahorro: ${finances.savingsRate}%`}
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Quick Stats Grid */}
           <QuickStats stats={stats} />

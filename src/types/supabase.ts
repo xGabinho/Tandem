@@ -167,6 +167,108 @@ export type Database = {
           },
         ]
       }
+      incomes: {
+        Row: {
+          id: string
+          workspace_id: string
+          user_id: string | null
+          title: string
+          amount: number
+          category: 'salary' | 'freelance' | 'investments' | 'business' | 'other'
+          frequency: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          user_id?: string | null
+          title: string
+          amount: number
+          category?: 'salary' | 'freelance' | 'investments' | 'business' | 'other'
+          frequency?: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          user_id?: string | null
+          title?: string
+          amount?: number
+          category?: 'salary' | 'freelance' | 'investments' | 'business' | 'other'
+          frequency?: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'incomes_workspace_id_fkey'
+            columns: ['workspace_id']
+            isOneToOne: false
+            referencedRelation: 'workspaces'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'incomes_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          id: string
+          workspace_id: string
+          user_id: string | null
+          title: string
+          amount: number
+          category: 'housing' | 'utilities' | 'food' | 'transport' | 'subscriptions' | 'health' | 'debt' | 'education' | 'other'
+          due_day: number | null
+          frequency: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
+          is_fixed: boolean | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          workspace_id: string
+          user_id?: string | null
+          title: string
+          amount: number
+          category?: 'housing' | 'utilities' | 'food' | 'transport' | 'subscriptions' | 'health' | 'debt' | 'education' | 'other'
+          due_day?: number | null
+          frequency?: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
+          is_fixed?: boolean | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          workspace_id?: string
+          user_id?: string | null
+          title?: string
+          amount?: number
+          category?: 'housing' | 'utilities' | 'food' | 'transport' | 'subscriptions' | 'health' | 'debt' | 'education' | 'other'
+          due_day?: number | null
+          frequency?: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly'
+          is_fixed?: boolean | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'expenses_workspace_id_fkey'
+            columns: ['workspace_id']
+            isOneToOne: false
+            referencedRelation: 'workspaces'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'expenses_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -185,3 +287,21 @@ export type Database = {
     }
   }
 }
+
+export type IncomeRow = Database['public']['Tables']['incomes']['Row']
+export type IncomeInsert = Database['public']['Tables']['incomes']['Insert']
+export type IncomeUpdate = Database['public']['Tables']['incomes']['Update']
+
+export type ExpenseRow = Database['public']['Tables']['expenses']['Row']
+export type ExpenseInsert = Database['public']['Tables']['expenses']['Insert']
+export type ExpenseUpdate = Database['public']['Tables']['expenses']['Update']
+
+export type GoalRow = Database['public']['Tables']['goals']['Row']
+export type GoalInsert = Database['public']['Tables']['goals']['Insert']
+export type GoalUpdate = Database['public']['Tables']['goals']['Update']
+
+export type ContributionRow = Database['public']['Tables']['contributions']['Row']
+export type ContributionInsert = Database['public']['Tables']['contributions']['Insert']
+
+export type WorkspaceRow = Database['public']['Tables']['workspaces']['Row']
+export type UserRow = Database['public']['Tables']['users']['Row']

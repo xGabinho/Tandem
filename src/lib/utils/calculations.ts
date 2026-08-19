@@ -173,3 +173,73 @@ export function validateContributionAmount(
   }
   return { valid: true }
 }
+
+type IncomeRow = Database['public']['Tables']['incomes']['Row']
+type ExpenseRow = Database['public']['Tables']['expenses']['Row']
+
+/**
+ * Normaliza un monto según su periodicidad a valor mensual equivalente.
+ */
+export function normalizeToMonthly(
+  amount: number,
+  frequency: 'monthly' | 'biweekly' | 'one_time' | 'weekly' | 'yearly' = 'monthly'
+): number {
+  switch (frequency) {
+    case 'weekly':
+      return roundToTwo(amount * (52 / 12))
+    case 'biweekly':
+      return roundToTwo(amount * 2)
+    case 'yearly':
+      return roundToTwo(amount / 12)
+    case 'one_time':
+      return roundToTwo(amount)
+    case 'monthly':
+    default:
+      return roundToTwo(amount)
+  }
+}
+
+/**
+ * Calcula la suma total de ingresos mensuales recurrentes.
+ */
+export function calculateTotalMonthlyIncomes(incomes: IncomeRow[]): number {
+  const total = incomes.reduce((sum, item) => sum + normalizeToMonthly(item.amount, item.frequency), 0)
+  return roundToTwo(total)
+}
+
+/**
+ * Calcula la suma total de gastos mensuales recurrentes.
+ */
+export function calculateTotalMonthlyExpenses(expenses: ExpenseRow[]): number {
+  const total = expenses.reduce((sum, item) => sum + normalizeToMonthly(item.amount, item.frequency), 0)
+  return roundToTwo(total)
+}
+
+/**
+ * Calcula el resumen financiero completo (Ingresos, Gastos, Resta/Balance y Tasa de Ahorro).
+ */
+export function calculateFinancialSummary(
+  incomes: IncomeRow[],
+  expenses: ExpenseRow[]
+): {
+  totalIncome: number
+  totalExpenses: number
+  netBalance: number
+  savingsRate: number
+  expenseRate: number
+} {
+  const totalIncome = calculateTotalMonthlyIncomes(incomes)
+  const totalExpenses = calculateTotalMonthlyExpenses(expenses)
+  const netBalance = roundToTwo(totalIncome - totalExpenses)
+  const savingsRate = totalIncome > 0 ? roundToTwo((Math.max(netBalance, 0) / totalIncome) * 100) : 0
+  const expenseRate = totalIncome > 0 ? roundToTwo((totalExpenses / totalIncome) * 100) : 0
+
+  return {
+    totalIncome,
+    totalExpenses,
+    netBalance,
+    savingsRate,
+    expenseRate,
+  }
+}
+

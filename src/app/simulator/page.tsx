@@ -1,15 +1,18 @@
 'use client'
 
-import { useState } from 'react'
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
+import { getIncomes, getExpenses } from '@/lib/api/finances'
 import {
   calculateSavingsCapacity,
   calculateInstallment,
+  calculateTotalMonthlyIncomes,
+  calculateTotalMonthlyExpenses,
   formatCurrency,
 } from '@/lib/utils/calculations'
-import { Database } from '@/types/supabase'
+import { Database, IncomeRow, ExpenseRow } from '@/types/supabase'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 
@@ -22,10 +25,9 @@ export default function SimulatorPage() {
   // Savings Calculator state (RF-015)
   const [income, setIncome] = useState('')
   const [expenses, setExpenses] = useState('')
-  const capacity =
-    income && expenses
-      ? calculateSavingsCapacity(parseFloat(income) || 0, parseFloat(expenses) || 0)
-      : null
+  const [savedIncomeTotal, setSavedIncomeTotal] = useState(0)
+  const [savedExpenseTotal, setSavedExpenseTotal] = useState(0)
+  const [hasLoadedSavedData, setHasLoadedSavedData] = useState(false)
 
   // Installment Projection state (RF-016)
   const [goals, setGoals] = useState<GoalRow[]>([])
@@ -33,9 +35,14 @@ export default function SimulatorPage() {
   const [selectedGoalId, setSelectedGoalId] = useState('')
   const [frequency, setFrequency] = useState<'monthly' | 'biweekly'>('monthly')
 
+  const capacity =
+    income && expenses
+      ? calculateSavingsCapacity(parseFloat(income) || 0, parseFloat(expenses) || 0)
+      : null
+
   useEffect(() => {
-    async function fetchGoals() {
-      const [goalsRes, contribRes] = await Promise.all([
+    async function fetchData() {
+      const [goalsRes, contribRes, incomesData, expensesData] = await Promise.all([
         supabase
           .from('goals')
           .select('*')
@@ -43,15 +50,30 @@ export default function SimulatorPage() {
           .neq('status', 'completed')
           .order('title'),
         supabase.from('contributions').select('*'),
+        getIncomes().catch(() => [] as IncomeRow[]),
+        getExpenses().catch(() => [] as ExpenseRow[]),
       ])
+
       if (goalsRes.data) {
         setGoals(goalsRes.data)
         if (goalsRes.data.length > 0) setSelectedGoalId(goalsRes.data[0].id)
       }
       if (contribRes.data) setContributions(contribRes.data)
+
+      const totalMonthlyInc = calculateTotalMonthlyIncomes(incomesData)
+      const totalMonthlyExp = calculateTotalMonthlyExpenses(expensesData)
+
+      setSavedIncomeTotal(totalMonthlyInc)
+      setSavedExpenseTotal(totalMonthlyExp)
+
+      if (totalMonthlyInc > 0 || totalMonthlyExp > 0) {
+        setIncome(totalMonthlyInc > 0 ? totalMonthlyInc.toString() : '')
+        setExpenses(totalMonthlyExp > 0 ? totalMonthlyExp.toString() : '')
+        setHasLoadedSavedData(true)
+      }
     }
 
-    if (profile?.workspace_id) fetchGoals()
+    if (profile?.workspace_id) fetchData()
   }, [profile?.workspace_id])
 
   const selectedGoal = goals.find((g) => g.id === selectedGoalId)
@@ -69,6 +91,11 @@ export default function SimulatorPage() {
         )
       : null
 
+  const handleResetToSaved = () => {
+    setIncome(savedIncomeTotal > 0 ? savedIncomeTotal.toString() : '')
+    setExpenses(savedExpenseTotal > 0 ? savedExpenseTotal.toString() : '')
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       <header>
@@ -76,29 +103,51 @@ export default function SimulatorPage() {
           Simulador Financiero
         </h2>
         <p className="text-text-muted text-sm mt-1">
-          Herramientas para planear mejor tus ahorros
+          Herramientas para planear mejor tus ahorros y proyectar tus metas
         </p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* ===== SAVINGS CALCULATOR (RF-015) ===== */}
         <div className="glass-card p-6 space-y-5">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[var(--radius-md)] bg-success-soft flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="16" height="12" x="4" y="6" rx="2" />
-                <path d="M2 10h20" />
-              </svg>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-[var(--radius-md)] bg-success-soft flex items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="16" height="12" x="4" y="6" rx="2" />
+                  <path d="M2 10h20" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-text-primary">
+                  Capacidad de Ahorro
+                </h3>
+                <p className="text-xs text-text-muted">
+                  Resta automática de tus gastos fijos sobre tus ingresos
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-text-primary">
-                Capacidad de Ahorro
-              </h3>
-              <p className="text-xs text-text-muted">
-                Calcula cuánto puedes ahorrar al mes
-              </p>
-            </div>
+            {hasLoadedSavedData && (
+              <button
+                onClick={handleResetToSaved}
+                className="text-[11px] font-semibold text-accent-primary hover:underline"
+                title="Restaurar a los montos guardados en Finanzas"
+              >
+                Cargar guardados
+              </button>
+            )}
           </div>
+
+          {hasLoadedSavedData && (
+            <div className="p-2.5 rounded-[var(--radius-md)] bg-accent-primary-soft border border-accent-primary/20 flex items-center justify-between text-xs">
+              <span className="text-accent-primary font-medium flex items-center gap-1.5">
+                <span>✨</span> Cargado de tus ingresos y gastos guardados
+              </span>
+              <Link href="/finances" className="text-accent-primary font-bold hover:underline">
+                Gestionar →
+              </Link>
+            </div>
+          )}
 
           <Input
             label="Ingresos mensuales"
@@ -127,7 +176,7 @@ export default function SimulatorPage() {
             <div className="space-y-3 pt-2 animate-fade-in">
               <div className="p-4 rounded-[var(--radius-lg)] bg-bg-surface">
                 <p className="text-xs text-text-muted mb-1">
-                  Capacidad de ahorro mensual
+                  Capacidad de ahorro mensual (Ingresos − Gastos)
                 </p>
                 <p className="text-2xl font-bold text-success">
                   ${formatCurrency(capacity.capacity)}
@@ -137,8 +186,8 @@ export default function SimulatorPage() {
               {/* Visual bar */}
               <div className="space-y-2">
                 <div className="flex justify-between text-xs text-text-muted">
-                  <span>Gastos</span>
-                  <span>Ahorro</span>
+                  <span>Gastos ({100 - capacity.savingsRate}%)</span>
+                  <span>Ahorro ({capacity.savingsRate}%)</span>
                 </div>
                 <div className="w-full h-4 bg-bg-card-hover rounded-full overflow-hidden flex">
                   <div
@@ -156,7 +205,7 @@ export default function SimulatorPage() {
                   />
                 </div>
                 <p className="text-center text-sm text-text-muted">
-                  Tasa de ahorro:{' '}
+                  Tasa de ahorro disponible:{' '}
                   <span className="font-bold text-accent-primary">
                     {capacity.savingsRate}%
                   </span>

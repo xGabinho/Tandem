@@ -4,10 +4,12 @@ import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase/client'
-import { Database } from '@/types/supabase'
+import { getIncomes, getExpenses } from '@/lib/api/finances'
+import { Database, IncomeRow, ExpenseRow } from '@/types/supabase'
 import {
   calculateGoalProgress,
   calculateInstallment,
+  calculateFinancialSummary,
   formatCurrency,
 } from '@/lib/utils/calculations'
 import Badge from '@/components/ui/Badge'
@@ -15,14 +17,28 @@ import Button from '@/components/ui/Button'
 import AddContributionModal from '@/components/contributions/AddContributionModal'
 import ConvertGoalDialog from '@/components/goals/ConvertGoalDialog'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
+import {
+  PiggyBank,
+  Search,
+  Sparkles,
+  Calendar,
+  Clock,
+  ArrowLeft,
+  Trash2,
+  Plus,
+  Check,
+  ExternalLink,
+  Zap,
+  TrendingUp,
+} from 'lucide-react'
 
 type GoalRow = Database['public']['Tables']['goals']['Row']
 type ContributionRow = Database['public']['Tables']['contributions']['Row']
 
 const typeConfig = {
-  savings: { label: 'Ahorro', emoji: '💰', variant: 'success' as const },
-  quoting: { label: 'Cotización', emoji: '🔍', variant: 'info' as const },
-  experience: { label: 'Experiencia', emoji: '⭐', variant: 'accent' as const },
+  savings: { label: 'Ahorro', icon: <PiggyBank size={14} className="text-emerald-400" />, variant: 'success' as const },
+  quoting: { label: 'Cotización', icon: <Search size={14} className="text-blue-400" />, variant: 'info' as const },
+  experience: { label: 'Experiencia', icon: <Sparkles size={14} className="text-amber-400" />, variant: 'accent' as const },
 }
 
 const priorityConfig = {
@@ -41,6 +57,8 @@ export default function GoalDetailPage({
   const { user } = useAuth()
   const [goal, setGoal] = useState<GoalRow | null>(null)
   const [contributions, setContributions] = useState<ContributionRow[]>([])
+  const [incomes, setIncomes] = useState<IncomeRow[]>([])
+  const [expenses, setExpenses] = useState<ExpenseRow[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddContribution, setShowAddContribution] = useState(false)
   const [showConvertDialog, setShowConvertDialog] = useState(false)
@@ -50,17 +68,21 @@ export default function GoalDetailPage({
   const fetchData = async () => {
     setLoading(true)
 
-    const [goalRes, contribRes] = await Promise.all([
+    const [goalRes, contribRes, incomesData, expensesData] = await Promise.all([
       supabase.from('goals').select('*').eq('id', id).single(),
       supabase
         .from('contributions')
         .select('*, users(name)')
         .eq('goal_id', id)
         .order('created_at', { ascending: false }),
+      getIncomes().catch(() => [] as IncomeRow[]),
+      getExpenses().catch(() => [] as ExpenseRow[]),
     ])
 
     if (goalRes.data) setGoal(goalRes.data)
     if (contribRes.data) setContributions(contribRes.data as ContributionRow[])
+    setIncomes(incomesData)
+    setExpenses(expensesData)
     setLoading(false)
   }
 
@@ -83,6 +105,33 @@ export default function GoalDetailPage({
           goal.target_date
         )
       : null
+
+  const finances = calculateFinancialSummary(incomes, expenses)
+
+  // Smart Projections based on Real Cashflow
+  const smartProjections = (() => {
+    if (!progress || progress.remaining <= 0 || finances.netBalance <= 0) return null
+
+    const remaining = progress.remaining
+    const net = finances.netBalance
+
+    const formatProjection = (monthlyAllocation: number) => {
+      const months = Math.ceil(remaining / monthlyAllocation)
+      const targetDate = new Date()
+      targetDate.setMonth(targetDate.getMonth() + months)
+      const formattedDate = targetDate.toLocaleDateString('es-ES', {
+        month: 'short',
+        year: 'numeric',
+      })
+      return { months, formattedDate, amount: monthlyAllocation }
+    }
+
+    return {
+      full: formatProjection(net),
+      half: formatProjection(net * 0.5),
+      quarter: formatProjection(net * 0.25),
+    }
+  })()
 
   // RN-014: Solo el usuario que registró el abono puede eliminarlo
   const handleDeleteContribution = async (contribId: string) => {
@@ -151,21 +200,19 @@ export default function GoalDetailPage({
   const priority = priorityConfig[goal.priority]
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-8">
       {/* Back button */}
       <button
         onClick={() => router.push('/goals')}
         className="flex items-center gap-2 text-sm text-text-muted hover:text-text-primary transition-colors"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
+        <ArrowLeft size={16} />
         Volver a metas
       </button>
 
       {/* Hero Image */}
       {goal.image_url && (
-        <div className="w-full h-48 md:h-64 rounded-[var(--radius-xl)] overflow-hidden">
+        <div className="w-full h-48 md:h-64 rounded-[var(--radius-xl)] overflow-hidden border border-border">
           <img
             src={goal.image_url}
             alt={goal.title}
@@ -178,18 +225,26 @@ export default function GoalDetailPage({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <Badge variant={type.variant}>{type.emoji} {type.label}</Badge>
+            <Badge variant={type.variant}>
+              <span className="inline-flex items-center gap-1">
+                {type.icon}
+                {type.label}
+              </span>
+            </Badge>
             <Badge variant={priority.variant} dot>{priority.label}</Badge>
             {goal.status === 'completed' && (
-              <Badge variant="success">✓ Completada</Badge>
+              <Badge variant="success">
+                <Check size={12} className="inline mr-1" /> Completada
+              </Badge>
             )}
           </div>
           <h1 className="text-2xl md:text-3xl font-bold text-text-primary">
             {goal.title}
           </h1>
           {goal.target_date && (
-            <p className="text-sm text-text-muted mt-1">
-              📅 Objetivo: {new Date(goal.target_date).toLocaleDateString('es-ES', {
+            <p className="text-sm text-text-muted mt-1 flex items-center gap-1.5">
+              <Calendar size={14} className="text-accent-primary" />
+              Objetivo: {new Date(goal.target_date).toLocaleDateString('es-ES', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -205,12 +260,7 @@ export default function GoalDetailPage({
               size="sm"
               variant="primary"
               onClick={() => setShowConvertDialog(true)}
-              icon={
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 5v14" />
-                  <path d="M5 12h14" />
-                </svg>
-              }
+              icon={<Plus size={14} />}
             >
               Convertir a Ahorro
             </Button>
@@ -221,8 +271,9 @@ export default function GoalDetailPage({
             variant={goal.status === 'completed' ? 'secondary' : 'outline'}
             onClick={handleToggleStatus}
             loading={togglingStatus}
+            icon={<Check size={14} />}
           >
-            {goal.status === 'completed' ? '✓ Completada' : 'Marcar completada'}
+            {goal.status === 'completed' ? 'Completada' : 'Marcar completada'}
           </Button>
 
           <Button
@@ -230,12 +281,7 @@ export default function GoalDetailPage({
             variant="danger"
             onClick={handleDeleteGoal}
             title="Eliminar meta"
-            icon={
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="3 6 5 6 21 6" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              </svg>
-            }
+            icon={<Trash2 size={14} />}
           >
             Eliminar
           </Button>
@@ -244,10 +290,10 @@ export default function GoalDetailPage({
 
       {/* Progress Section (savings only) */}
       {progress && goal.target_amount && (
-        <div className="glass-card p-6 space-y-4">
+        <div className="glass-card p-6 space-y-5">
           <div className="flex justify-between items-end">
             <div>
-              <p className="text-sm text-text-muted">Progreso</p>
+              <p className="text-sm text-text-muted">Progreso de Ahorro</p>
               <p className="text-3xl font-bold text-text-primary">
                 {Math.round(progress.percentage)}%
               </p>
@@ -274,24 +320,54 @@ export default function GoalDetailPage({
 
           {/* Installment projection */}
           {installment && installment.remainingAmount > 0 && (
-            <div className="flex gap-4 pt-2 text-sm">
-              <div className="flex-1 p-3 rounded-[var(--radius-md)] bg-bg-surface">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-sm">
+              <div className="p-3.5 rounded-[var(--radius-md)] bg-bg-surface border border-border">
                 <p className="text-text-muted text-xs">Cuota {installment.frequencyLabel}</p>
-                <p className="font-bold text-text-primary">
+                <p className="font-bold text-text-primary text-base">
                   ${formatCurrency(installment.installmentAmount)}
                 </p>
               </div>
-              <div className="flex-1 p-3 rounded-[var(--radius-md)] bg-bg-surface">
+              <div className="p-3.5 rounded-[var(--radius-md)] bg-bg-surface border border-border">
                 <p className="text-text-muted text-xs">Períodos restantes</p>
-                <p className="font-bold text-text-primary">
+                <p className="font-bold text-text-primary text-base">
                   {installment.periodsRemaining}
                 </p>
               </div>
-              <div className="flex-1 p-3 rounded-[var(--radius-md)] bg-bg-surface">
+              <div className="p-3.5 rounded-[var(--radius-md)] bg-bg-surface border border-border">
                 <p className="text-text-muted text-xs">Faltante</p>
-                <p className="font-bold text-danger">
+                <p className="font-bold text-danger text-base">
                   ${formatCurrency(installment.remainingAmount)}
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Smart Cashflow Projections */}
+          {smartProjections && (
+            <div className="p-4 rounded-[var(--radius-lg)] bg-accent-primary-soft/40 border border-accent-primary/20 space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-accent-primary uppercase tracking-wider">
+                <Zap size={15} />
+                <span>Proyección Inteligente según su Flujo Real (${formatCurrency(finances.netBalance)}/mes disponible)</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                <div className="p-2.5 rounded-[var(--radius-md)] bg-bg-card border border-border">
+                  <span className="text-text-muted block">Destinando el 100% (${formatCurrency(smartProjections.full.amount)})</span>
+                  <span className="font-bold text-success text-sm block mt-0.5">
+                    {smartProjections.full.months} {smartProjections.full.months === 1 ? 'mes' : 'meses'} ({smartProjections.full.formattedDate})
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-[var(--radius-md)] bg-bg-card border border-border">
+                  <span className="text-text-muted block">Destinando el 50% (${formatCurrency(smartProjections.half.amount)})</span>
+                  <span className="font-bold text-text-primary text-sm block mt-0.5">
+                    {smartProjections.half.months} meses ({smartProjections.half.formattedDate})
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-[var(--radius-md)] bg-bg-card border border-border">
+                  <span className="text-text-muted block">Destinando el 25% (${formatCurrency(smartProjections.quarter.amount)})</span>
+                  <span className="font-bold text-text-primary text-sm block mt-0.5">
+                    {smartProjections.quarter.months} meses ({smartProjections.quarter.formattedDate})
+                  </span>
+                </div>
               </div>
             </div>
           )}
@@ -299,12 +375,7 @@ export default function GoalDetailPage({
           <Button
             onClick={() => setShowAddContribution(true)}
             fullWidth
-            icon={
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 5v14" />
-                <path d="M5 12h14" />
-              </svg>
-            }
+            icon={<Plus size={16} />}
           >
             Registrar Abono
           </Button>
@@ -314,109 +385,100 @@ export default function GoalDetailPage({
       {/* Reference Links (quoting only) */}
       {goal.type === 'quoting' && goal.reference_links && (
         <div className="glass-card p-6">
-          <h3 className="font-bold text-text-primary mb-3">
-            🔗 Enlaces de referencia
+          <h3 className="font-bold text-text-primary mb-3 flex items-center gap-2">
+            <ExternalLink size={18} className="text-accent-primary" />
+            Enlaces de referencia
           </h3>
           <div className="space-y-2">
             {(Array.isArray(goal.reference_links)
-              ? goal.reference_links
-              : []
-            ).map((link, i) => (
-              <a
-                key={i}
-                href={String(link)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block p-3 rounded-[var(--radius-md)] bg-bg-surface text-sm text-accent-primary hover:bg-bg-card-hover transition-colors truncate"
-              >
-                {String(link)}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Contributions List */}
-      {contributions.length > 0 && (
-        <div className="glass-card p-6">
-          <h3 className="font-bold text-text-primary mb-4">
-            💳 Historial de Abonos ({contributions.length})
-          </h3>
-          <div className="space-y-2">
-            {contributions.map((c) => {
-              const contribUser = (c as Record<string, unknown>).users as
-                | { name: string }
-                | null
-              const canDelete = c.user_id === user?.id
-
-              return (
-                <div
-                  key={c.id}
-                  className="flex items-center gap-3 p-3 rounded-[var(--radius-md)] bg-bg-surface group"
+              ? (goal.reference_links as string[])
+              : typeof goal.reference_links === 'string'
+                ? (goal.reference_links as string).split('\n')
+                : []
+            )
+              .filter(Boolean)
+              .map((link: string, i: number) => (
+                <a
+                  key={i}
+                  href={link.startsWith('http') ? link : `https://${link}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-3 rounded-[var(--radius-md)] bg-bg-surface hover:bg-bg-card-hover text-sm text-accent-primary truncate transition-colors border border-border"
                 >
-                  <div className="w-8 h-8 rounded-full bg-accent-primary-soft flex items-center justify-center text-xs font-bold text-accent-primary shrink-0">
-                    {contribUser?.name?.charAt(0)?.toUpperCase() || '?'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text-primary">
-                      ${formatCurrency(c.amount)}
-                      {c.note && (
-                        <span className="text-text-muted font-normal ml-2">
-                          — {c.note}
-                        </span>
-                      )}
-                    </p>
-                    <p className="text-xs text-text-muted">
-                      {contribUser?.name || 'Usuario'} · {new Date(c.created_at || '').toLocaleDateString('es-ES')}
-                    </p>
-                  </div>
-                  {canDelete && (
-                    <button
-                      onClick={() => handleDeleteContribution(c.id)}
-                      disabled={deletingId === c.id}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full text-text-muted hover:text-danger hover:bg-danger-soft transition-all"
-                      title="Eliminar abono"
-                    >
-                      {deletingId === c.id ? (
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                      ) : (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                      )}
-                    </button>
-                  )}
-                </div>
-              )
-            })}
+                  {link}
+                </a>
+              ))}
           </div>
         </div>
       )}
 
-      {/* Add Contribution Modal */}
-      {goal && (
-        <AddContributionModal
-          isOpen={showAddContribution}
-          onClose={() => setShowAddContribution(false)}
-          onAdded={fetchData}
-          goal={goal}
-          currentTotal={totalContributions}
-        />
+      {/* Contributions History (savings only) */}
+      {goal.type === 'savings' && (
+        <div className="glass-card p-6 space-y-4">
+          <h3 className="font-bold text-text-primary">
+            Historial de Abonos ({contributions.length})
+          </h3>
+
+          {contributions.length > 0 ? (
+            <div className="divide-y divide-border">
+              {contributions.map((c) => {
+                const canDelete = c.user_id === user?.id
+                return (
+                  <div
+                    key={c.id}
+                    className="py-3 flex justify-between items-center"
+                  >
+                    <div>
+                      <p className="font-semibold text-text-primary">
+                        +${formatCurrency(c.amount)}
+                      </p>
+                      <p className="text-xs text-text-muted">
+                        {(c as unknown as { users?: { name: string } }).users?.name || 'Usuario'} •{' '}
+                        {c.created_at
+                          ? new Date(c.created_at).toLocaleDateString('es-ES', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                          : ''}
+                      </p>
+                    </div>
+                    {canDelete && (
+                      <button
+                        onClick={() => handleDeleteContribution(c.id)}
+                        disabled={deletingId === c.id}
+                        className="text-xs text-danger hover:underline p-1 transition-opacity"
+                      >
+                        {deletingId === c.id ? 'Eliminando...' : 'Eliminar'}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-text-muted py-4 text-center">
+              Aún no hay abonos registrados en esta meta.
+            </p>
+          )}
+        </div>
       )}
 
-      {/* Convert Goal Dialog (RF-011) */}
-      {goal && goal.type === 'quoting' && (
-        <ConvertGoalDialog
-          isOpen={showConvertDialog}
-          onClose={() => setShowConvertDialog(false)}
-          onConverted={fetchData}
-          goal={goal}
-        />
-      )}
+      {/* Modals */}
+      <AddContributionModal
+        goal={goal}
+        currentTotal={totalContributions}
+        isOpen={showAddContribution}
+        onClose={() => setShowAddContribution(false)}
+        onAdded={fetchData}
+      />
+
+      <ConvertGoalDialog
+        goal={goal}
+        isOpen={showConvertDialog}
+        onClose={() => setShowConvertDialog(false)}
+        onConverted={fetchData}
+      />
     </div>
   )
 }

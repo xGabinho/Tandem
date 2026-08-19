@@ -3,17 +3,22 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { getIncomes, getExpenses } from '@/lib/api/finances'
-import { IncomeRow, ExpenseRow } from '@/types/supabase'
+import { getWorkspaceUsers } from '@/lib/api/workspaces'
+import { IncomeRow, ExpenseRow, UserRow } from '@/types/supabase'
 import {
   calculateFinancialSummary,
   formatCurrency,
   normalizeToMonthly,
 } from '@/lib/utils/calculations'
+import { exportFinancesToCSV } from '@/lib/utils/exportReport'
 import Button from '@/components/ui/Button'
 import CreateIncomeModal from '@/components/finances/CreateIncomeModal'
 import EditIncomeModal from '@/components/finances/EditIncomeModal'
 import CreateExpenseModal from '@/components/finances/CreateExpenseModal'
 import EditExpenseModal from '@/components/finances/EditExpenseModal'
+import CoupleSplitCard from '@/components/finances/CoupleSplitCard'
+import UpcomingBillsCard from '@/components/finances/UpcomingBillsCard'
+import HealthScoreCard from '@/components/finances/HealthScoreCard'
 import {
   Plus,
   TrendingUp,
@@ -38,9 +43,13 @@ import {
   ArrowDownLeft,
   Receipt,
   Tags,
+  Scale,
+  Activity,
+  Download,
+  Calendar,
 } from 'lucide-react'
 
-type ActiveTab = 'overview' | 'incomes' | 'expenses' | 'categories'
+type ActiveTab = 'overview' | 'incomes' | 'expenses' | 'couple_split' | 'health' | 'categories'
 
 export const getIncomeIcon = (category: string, size = 18) => {
   switch (category) {
@@ -114,6 +123,7 @@ export default function FinancesPage() {
   const { profile } = useAuth()
   const [incomes, setIncomes] = useState<(IncomeRow & { users?: { name: string; avatar_url: string | null } | null })[]>([])
   const [expenses, setExpenses] = useState<(ExpenseRow & { users?: { name: string; avatar_url: string | null } | null })[]>([])
+  const [workspaceUsers, setWorkspaceUsers] = useState<UserRow[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<ActiveTab>('overview')
 
@@ -126,12 +136,14 @@ export default function FinancesPage() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [incomesData, expensesData] = await Promise.all([
+      const [incomesData, expensesData, usersData] = await Promise.all([
         getIncomes(),
         getExpenses(),
+        profile?.workspace_id ? getWorkspaceUsers(profile.workspace_id) : Promise.resolve([]),
       ])
       setIncomes(incomesData)
       setExpenses(expensesData)
+      setWorkspaceUsers(usersData)
     } catch (err) {
       console.error('Error al cargar finanzas:', err)
     } finally {
@@ -176,8 +188,20 @@ export default function FinancesPage() {
       .sort((a, b) => b.total - a.total)
   }, [expenses, summary.totalExpenses])
 
+  const handleExport = () => {
+    exportFinancesToCSV({
+      workspaceName: profile?.workspace_id || 'Tandem Espacio',
+      incomes,
+      expenses,
+      totalIncome: summary.totalIncome,
+      totalExpenses: summary.totalExpenses,
+      netBalance: summary.netBalance,
+      savingsRate: summary.savingsRate,
+    })
+  }
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in pb-8">
       {/* Header */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -188,11 +212,20 @@ export default function FinancesPage() {
             Control de flujo mensual y capacidad real de ahorro para sus metas
           </p>
         </div>
-        <div className="flex gap-2.5 w-full sm:w-auto">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Button
+            onClick={handleExport}
+            variant="secondary"
+            className="!border-border hover:!bg-bg-card-hover"
+            icon={<Download size={15} />}
+            title="Exportar resumen a Excel/CSV"
+          >
+            Exportar
+          </Button>
           <Button
             onClick={() => setShowCreateIncome(true)}
             variant="secondary"
-            className="flex-1 sm:flex-initial !border-success/30 !text-success hover:!bg-success-soft"
+            className="!border-success/30 !text-success hover:!bg-success-soft"
             icon={<Plus size={16} />}
           >
             Ingreso
@@ -335,10 +368,12 @@ export default function FinancesPage() {
       {/* Tab Navigation */}
       <div className="flex gap-2 border-b border-border pb-1 overflow-x-auto scrollbar-none">
         {[
-          { id: 'overview', label: 'Resumen Global', icon: <BarChart3 size={16} /> },
+          { id: 'overview', label: 'Resumen', icon: <BarChart3 size={16} /> },
           { id: 'incomes', label: `Ingresos (${incomes.length})`, icon: <ArrowDownLeft size={16} className="text-emerald-400" /> },
-          { id: 'expenses', label: `Gastos Fijos (${expenses.length})`, icon: <Receipt size={16} className="text-rose-400" /> },
-          { id: 'categories', label: 'Desglose por Categoría', icon: <Tags size={16} /> },
+          { id: 'expenses', label: `Gastos (${expenses.length})`, icon: <Receipt size={16} className="text-rose-400" /> },
+          { id: 'couple_split', label: 'División Pareja', icon: <Scale size={16} className="text-indigo-400" /> },
+          { id: 'health', label: 'Salud 50/30/20', icon: <Activity size={16} className="text-cyan-400" /> },
+          { id: 'categories', label: 'Categorías', icon: <Tags size={16} /> },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -355,133 +390,141 @@ export default function FinancesPage() {
         ))}
       </div>
 
-      {/* TAB 1: OVERVIEW / BOTH LISTS */}
+      {/* TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Incomes Summary List */}
-          <div className="glass-card p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-text-primary flex items-center gap-2">
-                <ArrowDownLeft size={18} className="text-emerald-400" />
-                Ingresos ({incomes.length})
-              </h3>
-              <button
-                onClick={() => setShowCreateIncome(true)}
-                className="text-xs font-semibold text-success hover:underline flex items-center gap-1"
-              >
-                <Plus size={12} /> Agregar
-              </button>
-            </div>
-            {incomes.length > 0 ? (
-              <div className="space-y-2.5">
-                {incomes.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => setEditingIncome(item)}
-                    className="p-3 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                        {getIncomeIcon(item.category, 18)}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-text-primary truncate group-hover:text-accent-primary transition-colors">
-                          {item.title}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-text-muted">
-                          <span>{incomeCategoryLabels[item.category] || item.category}</span>
-                          <span>•</span>
-                          <span>{frequencyLabels[item.frequency] || item.frequency}</span>
-                          {item.users?.name && (
-                            <>
-                              <span>•</span>
-                              <span>{item.users.name}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-success">
-                        +${formatCurrency(item.amount)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-text-muted text-sm space-y-2">
-                <p>No has registrado ingresos aún.</p>
-                <Button size="sm" variant="secondary" onClick={() => setShowCreateIncome(true)}>
-                  Registrar primer ingreso
-                </Button>
-              </div>
-            )}
-          </div>
+        <div className="space-y-6">
+          {/* Upcoming Bills Widget */}
+          <UpcomingBillsCard
+            expenses={expenses}
+            onEditExpense={(exp) => setEditingExpense(exp)}
+          />
 
-          {/* Expenses Summary List */}
-          <div className="glass-card p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-text-primary flex items-center gap-2">
-                <Receipt size={18} className="text-rose-400" />
-                Gastos Fijos ({expenses.length})
-              </h3>
-              <button
-                onClick={() => setShowCreateExpense(true)}
-                className="text-xs font-semibold text-danger hover:underline flex items-center gap-1"
-              >
-                <Plus size={12} /> Agregar
-              </button>
-            </div>
-            {expenses.length > 0 ? (
-              <div className="space-y-2.5">
-                {expenses.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => setEditingExpense(item)}
-                    className="p-3 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
-                        {getExpenseIcon(item.category, 18)}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-text-primary truncate group-hover:text-accent-primary transition-colors">
-                          {item.title}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-text-muted">
-                          <span>{expenseCategoryLabels[item.category]?.label || item.category}</span>
-                          {item.due_day && (
-                            <>
-                              <span>•</span>
-                              <span>Día {item.due_day}</span>
-                            </>
-                          )}
-                          {item.users?.name && (
-                            <>
-                              <span>•</span>
-                              <span>{item.users.name}</span>
-                            </>
-                          )}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Incomes Summary List */}
+            <div className="glass-card p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-text-primary flex items-center gap-2">
+                  <ArrowDownLeft size={18} className="text-emerald-400" />
+                  Ingresos ({incomes.length})
+                </h3>
+                <button
+                  onClick={() => setShowCreateIncome(true)}
+                  className="text-xs font-semibold text-success hover:underline flex items-center gap-1"
+                >
+                  <Plus size={12} /> Agregar
+                </button>
+              </div>
+              {incomes.length > 0 ? (
+                <div className="space-y-2.5">
+                  {incomes.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => setEditingIncome(item)}
+                      className="p-3 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                          {getIncomeIcon(item.category, 18)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-text-primary truncate group-hover:text-accent-primary transition-colors">
+                            {item.title}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-text-muted">
+                            <span>{incomeCategoryLabels[item.category] || item.category}</span>
+                            <span>•</span>
+                            <span>{frequencyLabels[item.frequency] || item.frequency}</span>
+                            {item.users?.name && (
+                              <>
+                                <span>•</span>
+                                <span>{item.users.name}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-bold text-success">
+                          +${formatCurrency(item.amount)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-sm font-bold text-danger">
-                        -${formatCurrency(item.amount)}
-                      </p>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-text-muted text-sm space-y-2">
+                  <p>No has registrado ingresos aún.</p>
+                  <Button size="sm" variant="secondary" onClick={() => setShowCreateIncome(true)}>
+                    Registrar primer ingreso
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Expenses Summary List */}
+            <div className="glass-card p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-text-primary flex items-center gap-2">
+                  <Receipt size={18} className="text-rose-400" />
+                  Gastos Fijos ({expenses.length})
+                </h3>
+                <button
+                  onClick={() => setShowCreateExpense(true)}
+                  className="text-xs font-semibold text-danger hover:underline flex items-center gap-1"
+                >
+                  <Plus size={12} /> Agregar
+                </button>
+              </div>
+              {expenses.length > 0 ? (
+                <div className="space-y-2.5">
+                  {expenses.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => setEditingExpense(item)}
+                      className="p-3 rounded-[var(--radius-lg)] bg-bg-surface hover:bg-bg-card-hover border border-border cursor-pointer transition-all flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center shrink-0">
+                          {getExpenseIcon(item.category, 18)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-text-primary truncate group-hover:text-accent-primary transition-colors">
+                            {item.title}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-text-muted">
+                            <span>{expenseCategoryLabels[item.category]?.label || item.category}</span>
+                            {item.due_day && (
+                              <>
+                                <span>•</span>
+                                <span>Día {item.due_day}</span>
+                              </>
+                            )}
+                            {item.users?.name && (
+                              <>
+                                <span>•</span>
+                                <span>{item.users.name}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-sm font-bold text-danger">
+                          -${formatCurrency(item.amount)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-text-muted text-sm space-y-2">
-                <p>No has registrado gastos mensuales aún.</p>
-                <Button size="sm" onClick={() => setShowCreateExpense(true)}>
-                  Registrar primer gasto
-                </Button>
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-text-muted text-sm space-y-2">
+                  <p>No has registrado gastos mensuales aún.</p>
+                  <Button size="sm" onClick={() => setShowCreateExpense(true)}>
+                    Registrar primer gasto
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -603,7 +646,28 @@ export default function FinancesPage() {
         </div>
       )}
 
-      {/* TAB 4: CATEGORIES BREAKDOWN */}
+      {/* TAB 4: COUPLE SPLIT */}
+      {activeTab === 'couple_split' && (
+        <CoupleSplitCard
+          workspaceUsers={workspaceUsers}
+          incomes={incomes}
+          expenses={expenses}
+          totalExpenses={summary.totalExpenses}
+          totalIncome={summary.totalIncome}
+        />
+      )}
+
+      {/* TAB 5: HEALTH 50/30/20 */}
+      {activeTab === 'health' && (
+        <HealthScoreCard
+          totalIncome={summary.totalIncome}
+          totalExpenses={summary.totalExpenses}
+          netBalance={summary.netBalance}
+          expenses={expenses}
+        />
+      )}
+
+      {/* TAB 6: CATEGORIES BREAKDOWN */}
       {activeTab === 'categories' && (
         <div className="glass-card p-6 space-y-6">
           <div>

@@ -3,12 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useTour } from '@/contexts/TourContext'
 import { supabase } from '@/lib/supabase/client'
 import { requestNotificationPermission, sendMobileNotification } from '@/lib/utils/notifications'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
-import WelcomeTourModal from '@/components/onboarding/WelcomeTourModal'
 import {
   Bell,
   BellRing,
@@ -27,6 +27,7 @@ import {
 export default function SettingsPage() {
   const { user, profile, refreshProfile, signOut } = useAuth()
   const { theme, setTheme, themes } = useTheme()
+  const { startTour } = useTour()
 
   // Profile editing
   const [name, setName] = useState(profile?.name || '')
@@ -37,9 +38,6 @@ export default function SettingsPage() {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default')
   const [testingNotif, setTestingNotif] = useState(false)
   const [notifSent, setNotifSent] = useState(false)
-
-  // Tour modal state
-  const [showTour, setShowTour] = useState(false)
 
   // Dissolution
   const [showDissolve, setShowDissolve] = useState(false)
@@ -355,10 +353,10 @@ export default function SettingsPage() {
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => setShowTour(true)}
+            onClick={startTour}
             icon={<Sparkles size={14} />}
           >
-            Ver Tour de Bienvenida
+            Iniciar Recorrido por la App
           </Button>
         </div>
       </section>
@@ -373,12 +371,6 @@ export default function SettingsPage() {
           Cerrar sesión
         </Button>
       </section>
-
-      {/* Interactive Welcome Tour */}
-      <WelcomeTourModal
-        forceOpen={showTour}
-        onCloseTour={() => setShowTour(false)}
-      />
 
       {/* Dissolve Modal (RN-006: double confirmation) */}
       <Modal

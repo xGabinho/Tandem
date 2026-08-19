@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { PrivacyProvider } from '@/contexts/PrivacyContext'
+import { TourProvider } from '@/contexts/TourContext'
 import { registerServiceWorker } from '@/lib/utils/notifications'
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -14,7 +15,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <PrivacyProvider>{children}</PrivacyProvider>
+        <PrivacyProvider>
+          <TourProvider>{children}</TourProvider>
+        </PrivacyProvider>
       </ThemeProvider>
     </AuthProvider>
   )

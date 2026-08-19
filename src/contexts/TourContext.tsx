@@ -107,8 +107,8 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'settings',
     route: '/settings',
-    badge: '6/6 • Pareja y Temas',
-    title: '6. Invitar a tu Pareja & Personalización',
+    badge: '6/6 • Ajustes',
+    title: '6. Personalización y Ajustes',
     subtitle: 'Comparte tu código único y cambia el diseño',
     description:
       'Aquí encuentras tu Código de Espacio para invitar a tu pareja (o unirte si ella ya lo creó). También puedes activar las Notificaciones Push y elegir entre 4 Temas visuales.',

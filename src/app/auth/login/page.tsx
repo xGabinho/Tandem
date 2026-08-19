@@ -158,6 +158,15 @@ export default function LoginPage() {
           }
         />
 
+        <div className="flex justify-end !mt-1">
+          <Link
+            href="/auth/forgot-password"
+            className="text-xs text-text-muted hover:text-accent-primary transition-colors font-medium"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        </div>
+
         {error && (
           <div className="flex items-center gap-2 px-4 py-3 rounded-[var(--radius-md)] bg-danger-soft text-danger text-sm animate-slide-down">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

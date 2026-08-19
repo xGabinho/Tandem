@@ -122,9 +122,9 @@ export default function CreateIncomeModal({
       onClose={handleClose}
       title="Nuevo Ingreso"
       subtitle="Registra un ingreso mensual o recurrente de tu hogar"
-      size="md"
+      size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3.5">
         <Input
           label="Concepto / Fuente del ingreso"
           placeholder="Ej: Salario Gabriel, Freelance diseño..."

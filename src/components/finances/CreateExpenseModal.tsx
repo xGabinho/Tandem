@@ -140,9 +140,9 @@ export default function CreateExpenseModal({
       onClose={handleClose}
       title="Nuevo Gasto Mensual"
       subtitle="Registra un gasto fijo o recurrente para restarlo de los ingresos"
-      size="md"
+      size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3.5">
         <Input
           label="Concepto del gasto"
           placeholder="Ej: Renta departamento, Despensa mensual, WiFi..."

@@ -128,9 +128,9 @@ export default function EditExpenseModal({
       onClose={onClose}
       title="Editar Gasto"
       subtitle="Modifica o elimina este registro de gasto"
-      size="md"
+      size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3.5">
         <Input
           label="Concepto del gasto"
           placeholder="Ej: Renta departamento, Despensa mensual, WiFi..."

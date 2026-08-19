@@ -49,10 +49,10 @@ export default function Modal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
         style={{ animationDuration: '0.2s' }}
         onClick={onClose}
         aria-hidden="true"
@@ -66,29 +66,31 @@ export default function Modal({
         className={`
           relative w-full ${sizeStyles[size]}
           bg-bg-card border border-border rounded-[var(--radius-xl)]
-          shadow-lg p-6 animate-fade-in-scale
+          shadow-2xl p-5 sm:p-6 animate-fade-in-scale
+          max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)]
+          flex flex-col my-auto z-10
         `}
       >
         {/* Header */}
         {(title || showClose) && (
-          <div className="flex items-start justify-between mb-5">
-            <div>
+          <div className="flex items-start justify-between mb-4 shrink-0 pb-1">
+            <div className="pr-4">
               {title && (
                 <h2
                   id="modal-title"
-                  className="text-lg font-bold text-text-primary"
+                  className="text-lg font-bold text-text-primary leading-snug"
                 >
                   {title}
                 </h2>
               )}
               {subtitle && (
-                <p className="text-sm text-text-muted mt-0.5">{subtitle}</p>
+                <p className="text-xs sm:text-sm text-text-muted mt-0.5">{subtitle}</p>
               )}
             </div>
             {showClose && (
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-full text-text-muted hover:text-text-primary hover:bg-bg-card-hover transition-colors"
+                className="p-1.5 rounded-full text-text-muted hover:text-text-primary hover:bg-bg-card-hover transition-colors shrink-0 -mr-1 -mt-1"
                 aria-label="Cerrar"
               >
                 <svg
@@ -109,8 +111,10 @@ export default function Modal({
           </div>
         )}
 
-        {/* Body */}
-        {children}
+        {/* Body (Scrollable if content overflows viewport) */}
+        <div className="overflow-y-auto overflow-x-hidden flex-1 -mr-2 pr-2">
+          {children}
+        </div>
       </div>
     </div>
   )

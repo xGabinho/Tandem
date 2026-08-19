@@ -146,7 +146,7 @@ export default function FinancesPage() {
               </svg>
             }
           >
-            + Gasto
+            Gasto
           </Button>
         </div>
       </header>

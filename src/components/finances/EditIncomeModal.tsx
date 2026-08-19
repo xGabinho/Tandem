@@ -122,9 +122,9 @@ export default function EditIncomeModal({
       onClose={onClose}
       title="Editar Ingreso"
       subtitle="Modifica o elimina este registro de ingreso"
-      size="md"
+      size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3.5">
         <Input
           label="Concepto / Fuente del ingreso"
           placeholder="Ej: Salario Gabriel, Freelance diseño..."

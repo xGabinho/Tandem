@@ -14,6 +14,7 @@ import {
 import ProgressRing from '@/components/dashboard/ProgressRing'
 import QuickStats from '@/components/dashboard/QuickStats'
 import ActivityFeed, { ActivityItem } from '@/components/dashboard/ActivityFeed'
+import WelcomeTourModal from '@/components/onboarding/WelcomeTourModal'
 import { usePrivacy } from '@/contexts/PrivacyContext'
 import { DashboardStatSkeleton } from '@/components/ui/SkeletonLoader'
 import {
@@ -392,6 +393,9 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Interactive Welcome Tour for New Users */}
+      <WelcomeTourModal />
     </>
   )
 }

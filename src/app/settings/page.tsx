@@ -8,6 +8,7 @@ import { requestNotificationPermission, sendMobileNotification } from '@/lib/uti
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Modal from '@/components/ui/Modal'
+import WelcomeTourModal from '@/components/onboarding/WelcomeTourModal'
 import {
   Bell,
   BellRing,
@@ -20,6 +21,7 @@ import {
   Palette,
   Users2,
   AlertTriangle,
+  Compass,
 } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -35,6 +37,9 @@ export default function SettingsPage() {
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default')
   const [testingNotif, setTestingNotif] = useState(false)
   const [notifSent, setNotifSent] = useState(false)
+
+  // Tour modal state
+  const [showTour, setShowTour] = useState(false)
 
   // Dissolution
   const [showDissolve, setShowDissolve] = useState(false)
@@ -335,6 +340,29 @@ export default function SettingsPage() {
         )}
       </section>
 
+      {/* ===== App Tour & Interactive Guide ===== */}
+      <section className="glass-card p-6 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-bold text-text-primary flex items-center gap-2">
+            <Compass size={18} className="text-accent-primary" />
+            Recorrido y Guía de Bienvenida
+          </h3>
+        </div>
+        <p className="text-xs text-text-muted leading-relaxed">
+          ¿Quieres recordar cómo funciona cada sección de Tándem o mostrarle el funcionamiento a tu pareja? Vuelve a ver el recorrido interactivo con ejemplos guiados.
+        </p>
+        <div className="pt-1">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setShowTour(true)}
+            icon={<Sparkles size={14} />}
+          >
+            Ver Tour de Bienvenida
+          </Button>
+        </div>
+      </section>
+
       {/* ===== Danger Zone ===== */}
       <section className="glass-card p-6 border-danger/20">
         <h3 className="font-bold text-danger flex items-center gap-2 mb-3">
@@ -345,6 +373,12 @@ export default function SettingsPage() {
           Cerrar sesión
         </Button>
       </section>
+
+      {/* Interactive Welcome Tour */}
+      <WelcomeTourModal
+        forceOpen={showTour}
+        onCloseTour={() => setShowTour(false)}
+      />
 
       {/* Dissolve Modal (RN-006: double confirmation) */}
       <Modal

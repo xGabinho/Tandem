@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { ExpenseRow } from '@/types/supabase'
 import { formatCurrency } from '@/lib/utils/calculations'
 import { usePrivacy } from '@/contexts/PrivacyContext'
 import { getExpenseIcon } from '@/app/finances/page'
-import { Calendar, AlertCircle, Clock, CheckCircle2 } from 'lucide-react'
+import { sendMobileNotification } from '@/lib/utils/notifications'
+import { Calendar, AlertCircle, Clock, CheckCircle2, BellRing, Bell } from 'lucide-react'
 
 interface UpcomingBillsCardProps {
   expenses: (ExpenseRow & { users?: { name: string; avatar_url: string | null } | null })[]
@@ -64,6 +65,27 @@ export default function UpcomingBillsCard({
     }
   }, [expenses, currentDay])
 
+  const [sendingReminder, setSendingReminder] = useState(false)
+  const [reminderSent, setReminderSent] = useState(false)
+
+  const handleSendBillReminder = async () => {
+    const urgentBills = sortedBills.filter((b) => b.rawDaysUntil >= 0 && b.rawDaysUntil <= 7)
+    if (urgentBills.length === 0) return
+
+    setSendingReminder(true)
+    const titles = urgentBills.map((b) => `${b.title} ($${formatCurrency(b.amount)})`).join(', ')
+    const success = await sendMobileNotification('⏰ Recordatorio de Facturas Próximas', {
+      body: `Tienes ${urgentBills.length} pago(s) en los próximos 7 días: ${titles}.`,
+      data: { url: '/finances' },
+    })
+
+    if (success) {
+      setReminderSent(true)
+      setTimeout(() => setReminderSent(false), 3000)
+    }
+    setSendingReminder(false)
+  }
+
   if (sortedBills.length === 0) {
     return null
   }
@@ -71,7 +93,7 @@ export default function UpcomingBillsCard({
   return (
     <div className="glass-card p-5 md:p-6 space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full bg-warning-soft text-warning flex items-center justify-center">
             <Calendar size={18} />
@@ -86,12 +108,26 @@ export default function UpcomingBillsCard({
           </div>
         </div>
 
-        {totalNext7Days > 0 && (
-          <div className="self-start sm:self-auto px-3 py-1.5 rounded-[var(--radius-md)] bg-warning-soft border border-warning/30 text-xs text-warning font-semibold flex items-center gap-1.5">
-            <Clock size={14} />
-            <span>Próximos 7 días: {maskAmount(totalNext7Days)}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+          {totalNext7Days > 0 && (
+            <button
+              onClick={handleSendBillReminder}
+              disabled={sendingReminder}
+              className="px-2.5 py-1.5 rounded-[var(--radius-md)] bg-warning-soft hover:bg-warning/20 border border-warning/30 text-xs text-warning font-semibold flex items-center gap-1.5 transition-all"
+              title="Enviar recordatorio push a mi celular"
+            >
+              <BellRing size={13} />
+              <span>{reminderSent ? '✓ Notificado' : 'Notificar al móvil'}</span>
+            </button>
+          )}
+
+          {totalNext7Days > 0 && (
+            <div className="px-3 py-1.5 rounded-[var(--radius-md)] bg-bg-surface border border-border text-xs text-text-primary font-semibold flex items-center gap-1.5">
+              <Clock size={14} className="text-warning" />
+              <span>7 días: {maskAmount(totalNext7Days)}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Timeline List */}

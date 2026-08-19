@@ -23,7 +23,7 @@ interface AuthContextType {
     email: string,
     password: string,
     name: string
-  ) => Promise<{ error?: string }>
+  ) => Promise<{ error?: string; needsConfirmation?: boolean }>
   signIn: (
     email: string,
     password: string
@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string,
     password: string,
     name: string
-  ): Promise<{ error?: string }> => {
+  ): Promise<{ error?: string; needsConfirmation?: boolean }> => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -148,6 +148,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (profileErr) {
         console.warn('Profile creation fallback notice:', profileErr)
       }
+      return {}
+    }
+
+    // Si data.user existe pero no data.session, requiere confirmación de email
+    if (data.user && !data.session) {
+      return { needsConfirmation: true }
     }
 
     return {}

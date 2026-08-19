@@ -18,6 +18,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [confirmationSent, setConfirmationSent] = useState(false)
 
   const validateForm = (): string | null => {
     if (!name.trim()) return 'El nombre es obligatorio.'
@@ -51,7 +52,11 @@ export default function RegisterPage() {
 
     setLoading(true)
 
-    const { error: signUpError } = await signUp(email, password, name.trim())
+    const { error: signUpError, needsConfirmation } = await signUp(
+      email,
+      password,
+      name.trim()
+    )
 
     if (signUpError) {
       // RN-001: Email único
@@ -60,12 +65,52 @@ export default function RegisterPage() {
       } else {
         setError(signUpError)
       }
+    } else if (needsConfirmation) {
+      setConfirmationSent(true)
     } else {
       // Redirigir al onboarding para crear/unirse a un workspace
       router.push('/onboarding')
     }
 
     setLoading(false)
+  }
+
+  if (confirmationSent) {
+    return (
+      <div className="text-center py-4 space-y-4 animate-fade-in">
+        <div className="w-16 h-16 rounded-full bg-accent-primary-soft text-accent-primary flex items-center justify-center mx-auto shadow-md">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect width="20" height="16" x="2" y="4" rx="2" />
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+          </svg>
+        </div>
+
+        <h2 className="text-2xl font-bold text-text-primary">
+          ¡Revisa tu Correo! ✉️
+        </h2>
+
+        <p className="text-sm text-text-muted leading-relaxed max-w-sm mx-auto">
+          Hemos enviado un enlace de confirmación a <strong className="text-accent-primary font-semibold">{email}</strong>.
+        </p>
+
+        <div className="p-4 rounded-[var(--radius-lg)] bg-bg-surface border border-border text-xs text-text-muted text-left space-y-2">
+          <p className="font-semibold text-text-primary">Pasos siguientes:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Abre tu bandeja de entrada en Gmail o tu cliente de correo.</li>
+            <li>Si no lo ves, revisa la carpeta de <strong>Spam / Correo no deseado</strong>.</li>
+            <li>Haz clic en el enlace para activar tu cuenta.</li>
+          </ol>
+        </div>
+
+        <Link
+          href="/auth/login"
+          className="inline-block w-full py-3 px-4 rounded-[var(--radius-lg)] font-bold text-white shadow-md transition-all text-sm"
+          style={{ background: 'var(--accent-gradient)' }}
+        >
+          Ir al Inicio de Sesión
+        </Link>
+      </div>
+    )
   }
 
   return (

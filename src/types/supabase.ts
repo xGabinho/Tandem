@@ -327,6 +327,45 @@ export type Database = {
           },
         ]
       }
+      goal_comments: {
+        Row: {
+          id: string
+          goal_id: string
+          user_id: string
+          message: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          goal_id: string
+          user_id: string
+          message: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          goal_id?: string
+          user_id?: string
+          message?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'goal_comments_goal_id_fkey'
+            columns: ['goal_id']
+            isOneToOne: false
+            referencedRelation: 'goals'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'goal_comments_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'users'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -361,6 +400,9 @@ export type InternalDebtUpdate = Database['public']['Tables']['internal_debts'][
 export type GoalRow = Database['public']['Tables']['goals']['Row']
 export type GoalInsert = Database['public']['Tables']['goals']['Insert']
 export type GoalUpdate = Database['public']['Tables']['goals']['Update']
+
+export type GoalCommentRow = Database['public']['Tables']['goal_comments']['Row']
+export type GoalCommentInsert = Database['public']['Tables']['goal_comments']['Insert']
 
 export type ContributionRow = Database['public']['Tables']['contributions']['Row']
 export type ContributionInsert = Database['public']['Tables']['contributions']['Insert']

@@ -19,6 +19,7 @@ import ConvertGoalDialog from '@/components/goals/ConvertGoalDialog'
 import EditGoalModal from '@/components/goals/EditGoalModal'
 import AffiliateLinksList from '@/components/goals/AffiliateLinksList'
 import AffiliatePurchaseCelebration from '@/components/goals/AffiliatePurchaseCelebration'
+import GoalCommentsWall from '@/components/goals/GoalCommentsWall'
 import { triggerCelebrationConfetti } from '@/lib/utils/confetti'
 import { usePrivacy } from '@/contexts/PrivacyContext'
 import SkeletonLoader from '@/components/ui/SkeletonLoader'
@@ -497,6 +498,9 @@ export default function GoalDetailPage({
           )}
         </div>
       )}
+
+      {/* Couple Notes & Motivation Wall */}
+      <GoalCommentsWall goalId={goal.id} />
 
       {/* Modals */}
       <AddContributionModal

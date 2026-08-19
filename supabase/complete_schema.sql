@@ -86,6 +86,15 @@ CREATE TABLE IF NOT EXISTS internal_debts (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- 8. Tabla de Mensajes y Notas en Metas
+CREATE TABLE IF NOT EXISTS goal_comments (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    goal_id UUID REFERENCES goals(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+    message TEXT NOT NULL CHECK (char_length(message) > 0 AND char_length(message) <= 1000),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- ==============================================================================
 -- 5. TRIGGERS AUTOMÁTICOS
 -- ==============================================================================
@@ -241,6 +250,33 @@ FOR SELECT USING (workspace_id = get_user_workspace_id());
 DROP POLICY IF EXISTS "Gestionar deudas del espacio" ON internal_debts;
 CREATE POLICY "Gestionar deudas del espacio" ON internal_debts 
 FOR ALL USING (workspace_id = get_user_workspace_id());
+
+-- Políticas para goal_comments
+ALTER TABLE goal_comments ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Ver comentarios de metas del espacio" ON goal_comments;
+CREATE POLICY "Ver comentarios de metas del espacio" ON goal_comments 
+FOR SELECT USING (
+    EXISTS (
+        SELECT 1 FROM goals g
+        WHERE g.id = goal_comments.goal_id
+          AND g.workspace_id = get_user_workspace_id()
+    )
+);
+
+DROP POLICY IF EXISTS "Agregar comentarios a metas del espacio" ON goal_comments;
+CREATE POLICY "Agregar comentarios a metas del espacio" ON goal_comments 
+FOR INSERT WITH CHECK (
+    EXISTS (
+        SELECT 1 FROM goals g
+        WHERE g.id = goal_comments.goal_id
+          AND g.workspace_id = get_user_workspace_id()
+    )
+);
+
+DROP POLICY IF EXISTS "Eliminar comentarios propios" ON goal_comments;
+CREATE POLICY "Eliminar comentarios propios" ON goal_comments 
+FOR DELETE USING (user_id = auth.uid());
 
 -- ==============================================================================
 -- 7. BUCKET DE STORAGE PARA FOTOS DE METAS

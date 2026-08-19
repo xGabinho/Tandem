@@ -232,35 +232,6 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* ===== Visual Identity & Logo Section ===== */}
-      <section className="glass-card p-6 space-y-4">
-        <h3 className="font-bold text-text-primary flex items-center gap-2">
-          <ImageIcon size={18} className="text-indigo-400" />
-          Logo e Icono de la App (Google Play Store & PWA)
-        </h3>
-
-        <div className="flex items-center gap-4 p-4 rounded-[var(--radius-lg)] bg-bg-surface border border-border">
-          <div className="w-16 h-16 rounded-[var(--radius-lg)] bg-bg-card border border-border flex items-center justify-center p-2 shrink-0 shadow-md">
-            <img
-              src="/icons/icon.svg"
-              alt="Logo Tándem"
-              className="w-full h-full object-contain"
-            />
-          </div>
-          <div className="space-y-1 text-xs">
-            <p className="font-bold text-text-primary text-sm">
-              Logo Oficial de Tándem
-            </p>
-            <p className="text-text-muted">
-              Ubicación de archivo: <code className="text-accent-primary font-mono">public/icons/icon.svg</code>
-            </p>
-            <p className="text-text-muted">
-              Para cambiar el logo con tu diseño propio, solo reemplaza este archivo o coloca tu imagen PNG en <code className="font-mono text-text-primary">public/icons/</code>.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* ===== Theme Section (RF-003) ===== */}
       <section className="glass-card p-6 space-y-4">
         <h3 className="font-bold text-text-primary flex items-center gap-2">

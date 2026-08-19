@@ -8,6 +8,7 @@ import { expenseCategories } from './CreateExpenseModal'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import { Home, Sparkles } from 'lucide-react'
 
 interface EditExpenseModalProps {
   expense: ExpenseRow | null
@@ -38,6 +39,7 @@ export default function EditExpenseModal({
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState<typeof expenseCategories[number]['id']>('housing')
+  const [isNeed, setIsNeed] = useState<boolean>(true)
   const [frequency, setFrequency] = useState<typeof frequencies[number]['id']>('monthly')
   const [dueDay, setDueDay] = useState('')
   const [assignedUserId, setAssignedUserId] = useState<string>('')
@@ -47,6 +49,7 @@ export default function EditExpenseModal({
       setTitle(expense.title)
       setAmount(expense.amount.toString())
       setCategory(expense.category)
+      setIsNeed(expense.is_fixed !== false) // default true unless explicitly false
       setFrequency(expense.frequency)
       setDueDay(expense.due_day ? expense.due_day.toString() : '')
       setAssignedUserId(expense.user_id || '')
@@ -61,6 +64,15 @@ export default function EditExpenseModal({
   }, [expense, isOpen])
 
   if (!expense) return null
+
+  const handleCategorySelect = (catId: typeof expenseCategories[number]['id']) => {
+    setCategory(catId)
+    if (catId === 'subscriptions' || catId === 'other') {
+      setIsNeed(false)
+    } else {
+      setIsNeed(true)
+    }
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -96,6 +108,7 @@ export default function EditExpenseModal({
         category,
         frequency,
         due_day: parsedDueDay,
+        is_fixed: isNeed,
         user_id: assignedUserId || null,
       })
       onUpdated()
@@ -127,13 +140,13 @@ export default function EditExpenseModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Editar Gasto"
-      subtitle="Modifica o elimina este registro de gasto"
+      subtitle="Modifica los detalles y la clasificación del gasto"
       size="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-3.5">
         <Input
           label="Concepto del gasto"
-          placeholder="Ej: Renta departamento, Despensa mensual, WiFi..."
+          placeholder="Ej: Renta, Pasajes estudio, Supermercado, Netflix..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
@@ -159,6 +172,50 @@ export default function EditExpenseModal({
             min="1"
             max="31"
           />
+        </div>
+
+        {/* Tipo de Presupuesto (Regla 50/30/20) */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-text-secondary pl-1">
+            Tipo de Gasto (Regla 50 / 30 / 20)
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setIsNeed(true)}
+              className={`p-3 rounded-[var(--radius-md)] text-xs font-medium border transition-all text-left flex items-center gap-2.5 ${
+                isNeed
+                  ? 'bg-indigo-500/20 border-indigo-500/50 text-text-primary font-semibold shadow-sm'
+                  : 'bg-bg-surface border-border text-text-muted hover:border-border-hover hover:text-text-primary'
+              }`}
+            >
+              <div className="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                <Home size={14} />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-text-primary">Necesidad Básica</p>
+                <p className="text-[11px] text-text-muted">Esencial (Renta, transporte, despensa)</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsNeed(false)}
+              className={`p-3 rounded-[var(--radius-md)] text-xs font-medium border transition-all text-left flex items-center gap-2.5 ${
+                !isNeed
+                  ? 'bg-pink-500/20 border-pink-500/50 text-text-primary font-semibold shadow-sm'
+                  : 'bg-bg-surface border-border text-text-muted hover:border-border-hover hover:text-text-primary'
+              }`}
+            >
+              <div className="w-7 h-7 rounded-full bg-pink-500/20 text-pink-400 flex items-center justify-center shrink-0">
+                <Sparkles size={14} />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-text-primary">Estilo de Vida / Deseo</p>
+                <p className="text-[11px] text-text-muted">Opcional (Streaming, salidas, ocio)</p>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Frecuencia */}
@@ -189,12 +246,12 @@ export default function EditExpenseModal({
           <label className="text-sm font-medium text-text-secondary pl-1">
             Categoría
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto pr-1">
             {expenseCategories.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
-                onClick={() => setCategory(cat.id)}
+                onClick={() => handleCategorySelect(cat.id)}
                 className={`flex items-center gap-2 p-2 rounded-[var(--radius-md)] text-xs font-medium border transition-all text-left ${
                   category === cat.id
                     ? 'bg-danger-soft border-danger/40 text-danger font-semibold'

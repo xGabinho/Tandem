@@ -32,7 +32,8 @@ export default function HealthScoreCard({
     expenses.forEach((exp) => {
       const monthly = normalizeToMonthly(exp.amount, exp.frequency)
       const cat = exp.category || 'other'
-      if (NEEDS_CATEGORIES.has(cat)) {
+      const isNeed = exp.is_fixed !== null ? exp.is_fixed : NEEDS_CATEGORIES.has(cat)
+      if (isNeed) {
         needsTotal += monthly
       } else {
         wantsTotal += monthly

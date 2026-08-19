@@ -18,6 +18,8 @@ import {
   CreditCard,
   GraduationCap,
   Package,
+  Sparkles,
+  ShieldCheck,
 } from 'lucide-react'
 
 interface CreateExpenseModalProps {
@@ -30,7 +32,7 @@ export const expenseCategories = [
   { id: 'housing', label: 'Vivienda / Renta', icon: <Home size={16} className="text-indigo-400" /> },
   { id: 'utilities', label: 'Servicios (Luz, Agua, Net)', icon: <Zap size={16} className="text-cyan-400" /> },
   { id: 'food', label: 'Alimentación / Super', icon: <ShoppingCart size={16} className="text-emerald-400" /> },
-  { id: 'transport', label: 'Transporte / Gasolina', icon: <Car size={16} className="text-amber-400" /> },
+  { id: 'transport', label: 'Transporte / Pasajes', icon: <Car size={16} className="text-amber-400" /> },
   { id: 'subscriptions', label: 'Suscripciones / Streaming', icon: <Tv size={16} className="text-pink-400" /> },
   { id: 'health', label: 'Salud y Seguros', icon: <HeartPulse size={16} className="text-rose-400" /> },
   { id: 'debt', label: 'Deudas y Tarjetas', icon: <CreditCard size={16} className="text-purple-400" /> },
@@ -59,6 +61,7 @@ export default function CreateExpenseModal({
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState<typeof expenseCategories[number]['id']>('housing')
+  const [isNeed, setIsNeed] = useState<boolean>(true) // true = Necesidad Básica (50%), false = Estilo de vida/Deseo (30%)
   const [frequency, setFrequency] = useState<typeof frequencies[number]['id']>('monthly')
   const [dueDay, setDueDay] = useState('')
   const [assignedUserId, setAssignedUserId] = useState<string>('')
@@ -76,10 +79,21 @@ export default function CreateExpenseModal({
     }
   }, [isOpen, profile?.workspace_id, profile?.id])
 
+  const handleCategorySelect = (catId: typeof expenseCategories[number]['id']) => {
+    setCategory(catId)
+    // Auto-suggest default classification
+    if (catId === 'subscriptions' || catId === 'other') {
+      setIsNeed(false)
+    } else {
+      setIsNeed(true)
+    }
+  }
+
   const resetForm = () => {
     setTitle('')
     setAmount('')
     setCategory('housing')
+    setIsNeed(true)
     setFrequency('monthly')
     setDueDay('')
     setAssignedUserId(profile?.id || '')
@@ -131,7 +145,7 @@ export default function CreateExpenseModal({
       category,
       frequency,
       due_day: parsedDueDay,
-      is_fixed: true,
+      is_fixed: isNeed,
     }
 
     try {
@@ -149,14 +163,14 @@ export default function CreateExpenseModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Nuevo Gasto Mensual"
-      subtitle="Registra un gasto fijo o recurrente para restarlo de los ingresos"
+      title="Nuevo Gasto"
+      subtitle="Registra un gasto y clasifícalo para el presupuesto del hogar"
       size="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-3.5">
         <Input
           label="Concepto del gasto"
-          placeholder="Ej: Renta departamento, Despensa mensual, WiFi..."
+          placeholder="Ej: Renta, Pasajes estudio, Supermercado, Netflix..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           autoFocus
@@ -183,6 +197,50 @@ export default function CreateExpenseModal({
             min="1"
             max="31"
           />
+        </div>
+
+        {/* Tipo de Presupuesto (Regla 50/30/20) */}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-medium text-text-secondary pl-1">
+            Tipo de Gasto (Regla 50 / 30 / 20)
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setIsNeed(true)}
+              className={`p-3 rounded-[var(--radius-md)] text-xs font-medium border transition-all text-left flex items-center gap-2.5 ${
+                isNeed
+                  ? 'bg-indigo-500/20 border-indigo-500/50 text-text-primary font-semibold shadow-sm'
+                  : 'bg-bg-surface border-border text-text-muted hover:border-border-hover hover:text-text-primary'
+              }`}
+            >
+              <div className="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                <Home size={14} />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-text-primary">Necesidad Básica</p>
+                <p className="text-[11px] text-text-muted">Esencial (Renta, transporte, despensa)</p>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsNeed(false)}
+              className={`p-3 rounded-[var(--radius-md)] text-xs font-medium border transition-all text-left flex items-center gap-2.5 ${
+                !isNeed
+                  ? 'bg-pink-500/20 border-pink-500/50 text-text-primary font-semibold shadow-sm'
+                  : 'bg-bg-surface border-border text-text-muted hover:border-border-hover hover:text-text-primary'
+              }`}
+            >
+              <div className="w-7 h-7 rounded-full bg-pink-500/20 text-pink-400 flex items-center justify-center shrink-0">
+                <Sparkles size={14} />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-text-primary">Estilo de Vida / Deseo</p>
+                <p className="text-[11px] text-text-muted">Opcional (Streaming, salidas, ocio)</p>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Frecuencia */}
@@ -213,12 +271,12 @@ export default function CreateExpenseModal({
           <label className="text-sm font-medium text-text-secondary pl-1">
             Categoría
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto pr-1">
             {expenseCategories.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
-                onClick={() => setCategory(cat.id)}
+                onClick={() => handleCategorySelect(cat.id)}
                 className={`flex items-center gap-2 p-2 rounded-[var(--radius-md)] text-xs font-medium border transition-all text-left ${
                   category === cat.id
                     ? 'bg-danger-soft border-danger/40 text-danger font-semibold'

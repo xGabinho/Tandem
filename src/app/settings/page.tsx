@@ -113,7 +113,7 @@ export default function SettingsPage() {
     const perm = await requestNotificationPermission()
     setNotifPermission(perm)
     if (perm === 'granted') {
-      sendMobileNotification('¡Permiso Concedido! 🔔', {
+      sendMobileNotification('¡Permiso Concedido!', {
         body: 'Las notificaciones en tu celular ya están listas.',
         data: { url: '/settings' },
       })
@@ -211,7 +211,7 @@ export default function SettingsPage() {
             }`}
           >
             {notifPermission === 'granted'
-              ? '✓ Activadas'
+              ? 'Activadas'
               : notifPermission === 'denied'
                 ? 'Bloqueadas'
                 : 'Pendiente'}

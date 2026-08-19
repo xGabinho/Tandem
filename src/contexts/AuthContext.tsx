@@ -102,6 +102,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchProfile(newSession.user.id)
       } else {
         setProfile(null)
+        if (event === 'SIGNED_OUT' && typeof window !== 'undefined') {
+          const path = window.location.pathname
+          if (!path.startsWith('/auth')) {
+            window.location.href = '/auth/login'
+          }
+        }
       }
     })
 
@@ -166,11 +172,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    setUser(null)
-    setProfile(null)
-    setSession(null)
-    setSessionCookies(null)
+    try {
+      await supabase.auth.signOut()
+    } catch (err) {
+      console.warn('Sign out notice:', err)
+    } finally {
+      setUser(null)
+      setProfile(null)
+      setSession(null)
+      setSessionCookies(null)
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth/login'
+      }
+    }
   }
 
   return (

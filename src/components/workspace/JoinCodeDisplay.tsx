@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Button from '@/components/ui/Button'
+import { CheckCircle2, Copy, Check } from 'lucide-react'
 
 interface JoinCodeDisplayProps {
   code: string
@@ -30,10 +31,8 @@ export default function JoinCodeDisplay({ code }: JoinCodeDisplayProps) {
 
   return (
     <div className="text-center space-y-4 animate-fade-in">
-      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-success-soft mb-2">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-success-soft text-success mb-2 shadow-sm">
+        <CheckCircle2 size={32} />
       </div>
 
       <h3 className="text-lg font-bold text-text-primary">
@@ -67,18 +66,7 @@ export default function JoinCodeDisplay({ code }: JoinCodeDisplayProps) {
         variant={copied ? 'secondary' : 'outline'}
         size="sm"
         onClick={handleCopy}
-        icon={
-          copied ? (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          ) : (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-            </svg>
-          )
-        }
+        icon={copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
       >
         {copied ? '¡Copiado!' : 'Copiar código'}
       </Button>

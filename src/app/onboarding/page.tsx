@@ -11,6 +11,7 @@ import {
 import JoinCodeDisplay from '@/components/workspace/JoinCodeDisplay'
 import JoinCodeInput from '@/components/workspace/JoinCodeInput'
 import Button from '@/components/ui/Button'
+import { Users2, Plus, KeyRound, UserPlus, Sparkles } from 'lucide-react'
 
 type Step = 'choose' | 'create' | 'join'
 
@@ -92,15 +93,10 @@ export default function OnboardingPage() {
           <div className="animate-fade-in space-y-6">
             <div className="text-center mb-8">
               <div
-                className="inline-flex items-center justify-center w-16 h-16 rounded-[var(--radius-xl)] mb-4"
+                className="inline-flex items-center justify-center w-16 h-16 rounded-[var(--radius-xl)] mb-4 text-white shadow-lg"
                 style={{ background: 'var(--accent-gradient)' }}
               >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
+                <Users2 size={32} />
               </div>
               <h1 className="text-2xl font-bold text-text-primary">
                 ¡Bienvenido a Tándem!
@@ -114,14 +110,11 @@ export default function OnboardingPage() {
             <button
               onClick={handleCreate}
               disabled={loading}
-              className="w-full glass-card p-6 text-left group cursor-pointer"
+              className="w-full glass-card p-6 text-left group cursor-pointer hover:border-accent-primary/50 transition-all"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-accent-primary-soft flex items-center justify-center shrink-0 group-hover:bg-accent-primary/20 transition-colors">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 5v14" />
-                    <path d="M5 12h14" />
-                  </svg>
+                <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-accent-primary-soft text-accent-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-all">
+                  <Plus size={24} />
                 </div>
                 <div>
                   <h3 className="font-bold text-text-primary text-base">
@@ -137,16 +130,11 @@ export default function OnboardingPage() {
             {/* Option: Join existing workspace */}
             <button
               onClick={() => setStep('join')}
-              className="w-full glass-card p-6 text-left group cursor-pointer"
+              className="w-full glass-card p-6 text-left group cursor-pointer hover:border-accent-secondary/50 transition-all"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-info-soft flex items-center justify-center shrink-0 group-hover:bg-info/20 transition-colors">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--info)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <line x1="19" y1="8" x2="19" y2="14" />
-                    <line x1="22" y1="11" x2="16" y2="11" />
-                  </svg>
+                <div className="w-12 h-12 rounded-[var(--radius-lg)] bg-accent-secondary/20 text-accent-secondary flex items-center justify-center shrink-0 group-hover:scale-105 transition-all">
+                  <KeyRound size={24} />
                 </div>
                 <div>
                   <h3 className="font-bold text-text-primary text-base">

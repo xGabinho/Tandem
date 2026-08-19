@@ -2,6 +2,7 @@
 
 import { useState, useRef, KeyboardEvent, ClipboardEvent } from 'react'
 import Button from '@/components/ui/Button'
+import { KeyRound } from 'lucide-react'
 
 interface JoinCodeInputProps {
   onSubmit: (code: string) => Promise<void>
@@ -80,13 +81,8 @@ export default function JoinCodeInput({
 
   return (
     <div className="text-center space-y-5 animate-fade-in">
-      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-primary-soft mb-2">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <line x1="19" y1="8" x2="19" y2="14" />
-          <line x1="22" y1="11" x2="16" y2="11" />
-        </svg>
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-secondary/20 text-accent-secondary mb-2 shadow-sm">
+        <KeyRound size={28} />
       </div>
 
       <h3 className="text-lg font-bold text-text-primary">
